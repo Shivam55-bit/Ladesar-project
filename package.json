@@ -1,0 +1,12 @@
+{
+  "name": "ladesar-organics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ladesar Organics - E-Commerce, Admin ERP & Backend Suite",
+  "scripts": {
+    "dev:backend": "cd Ladesar-Organics-backend && npm run dev",
+    "dev:frontend": "cd Ladesar-Organics-frontend && npm run dev",
+    "dev:admin": "cd Ladesar-Organics-admin && npm run dev",
+    "build:all": "cd Ladesar-Organics-backend && npm run build && cd ../Ladesar-Organics-frontend && npm run build && cd ../Ladesar-Organics-admin && npm run build"
+  }
+}

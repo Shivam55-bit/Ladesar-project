@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-shadow: 0 8px 32px 0 rgba(15, 56, 35, 0.06);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #FDFBF7;
+    color: #1A2E26;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, .font-serif-luxury {
+    font-family: var(--font-serif);
+  }
+}
+
+.font-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-garamond {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-sans-clean {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Frosted Glass Core System */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px 0 rgba(15, 56, 35, 0.06);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 20px 0 rgba(15, 56, 35, 0.04);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 56, 35, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.28);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px -4px rgba(15, 56, 35, 0.06), 0 2px 6px -1px rgba(15, 56, 35, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 16px 36px -4px rgba(15, 56, 35, 0.12), 0 4px 12px -2px rgba(15, 56, 35, 0.06);
+  transform: translateY(-2px);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(15, 56, 35, 0.14);
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #D4AF37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+/* Custom organic gold gradients & text */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 50%, #E6CA65 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #D4AF37 0%, #C59B27 50%, #E6CA65 100%);
+}
+
+.bg-forest-gradient {
+  background: linear-gradient(145deg, #0D3320 0%, #164E31 50%, #092416 100%);
+}
+
+/* Ambient canvas background effect */
+.frosted-bg-mesh {
+  background-color: #FDFBF7;
+  background-image: 
+    radial-gradient(at 15% 15%, rgba(212, 175, 55, 0.08) 0px, transparent 50%),
+    radial-gradient(at 85% 25%, rgba(45, 106, 79, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 65%, rgba(212, 175, 55, 0.05) 0px, transparent 60%),
+    radial-gradient(at 80% 85%, rgba(15, 56, 35, 0.07) 0px, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(253, 251, 247, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.6);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8860B;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.92; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
