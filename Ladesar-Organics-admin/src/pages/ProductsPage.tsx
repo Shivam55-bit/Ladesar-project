@@ -53,22 +53,82 @@ export const ProductsPage: React.FC = () => {
   const [formStock, setFormStock] = useState(50);
   const [formSize, setFormSize] = useState('500 g');
   const [formDesc, setFormDesc] = useState('');
+  const [imageSourceMode, setImageSourceMode] = useState<'upload' | 'url'>('url');
   const [formImage, setFormImage] = useState('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80');
+  const [formImageUrl, setFormImageUrl] = useState('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80');
   const [formDietaryTags, setFormDietaryTags] = useState('100% Pure, Zero Chemicals');
   const [productFileName, setProductFileName] = useState('');
   const [isDraggingProductImg, setIsDraggingProductImg] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const productFileInputRef = useRef<HTMLInputElement>(null);
 
-  const processProductFile = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      showToast('Please select a valid image file (PNG, JPG, WebP)', 'warning');
+  const switchImageMode = (mode: 'upload' | 'url') => {
+    setImageSourceMode(mode);
+    if (mode === 'upload') {
+      setFormImageUrl('');
+      if (!formImage.startsWith('/uploads/') && !formImage.startsWith('data:')) {
+        setFormImage('');
+      }
+    } else {
+      setProductFileName('');
+      if (productFileInputRef.current) {
+        productFileInputRef.current.value = '';
+      }
+      if (formImage.startsWith('/uploads/') || formImage.startsWith('data:')) {
+        setFormImage(formImageUrl);
+      } else {
+        setFormImage(formImageUrl);
+      }
+    }
+  };
+
+  const handleImageUrlChange = (url: string) => {
+    setImageSourceMode('url');
+    setProductFileName('');
+    if (productFileInputRef.current) {
+      productFileInputRef.current.value = '';
+    }
+    setFormImageUrl(url);
+    setFormImage(url.trim());
+  };
+
+  const processProductFile = async (file: File) => {
+    const validExtensions = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validExtensions.includes(file.type.toLowerCase())) {
+      showToast('Please select a valid image file (PNG, JPG, JPEG, WebP)', 'warning');
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      showToast('Image file size should be less than 8 MB', 'warning');
+      showToast('Image file size must be less than 8 MB', 'warning');
       return;
     }
+
+    setImageSourceMode('upload');
+    setFormImageUrl('');
     setProductFileName(file.name);
+    setIsUploadingImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && (data.path || data.url)) {
+          setFormImage(data.path || data.url);
+          showToast(`Uploaded image: "${file.name}"`, 'success');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Backend product image upload failed, falling back to data URL', e);
+    } finally {
+      setIsUploadingImage(false);
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
@@ -98,9 +158,15 @@ export const ProductsPage: React.FC = () => {
     setFormStock(60);
     setFormSize('500 g');
     setFormDesc('');
-    setFormImage('https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80');
+    const defaultUrl = 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80';
+    setImageSourceMode('url');
+    setFormImage(defaultUrl);
+    setFormImageUrl(defaultUrl);
     setFormDietaryTags('100% Pure, Stone Ground, Certified Organic');
     setProductFileName('');
+    if (productFileInputRef.current) {
+      productFileInputRef.current.value = '';
+    }
     setIsModalOpen(true);
   };
 
@@ -115,9 +181,21 @@ export const ProductsPage: React.FC = () => {
     setFormStock(product.variants[0]?.stock || 0);
     setFormSize(product.variants[0]?.size || '500 g');
     setFormDesc(product.shortDescription || '');
-    setFormImage(product.heroImage || '');
+    const img = product.heroImage || '';
+    setFormImage(img);
+    if (img.startsWith('/uploads/') || img.startsWith('data:')) {
+      setImageSourceMode('upload');
+      setFormImageUrl('');
+      setProductFileName(img.split('/').pop() || 'Uploaded Image');
+    } else {
+      setImageSourceMode('url');
+      setFormImageUrl(img);
+      setProductFileName('');
+    }
+    if (productFileInputRef.current) {
+      productFileInputRef.current.value = '';
+    }
     setFormDietaryTags(product.dietaryTags?.join(', ') || '100% Pure, Certified Organic');
-    setProductFileName('');
     setIsModalOpen(true);
   };
 
@@ -143,7 +221,32 @@ export const ProductsPage: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formName.trim()) return;
+    if (!formName.trim()) {
+      showToast('Product title is required', 'warning');
+      return;
+    }
+
+    let finalHeroImage = formImage.trim();
+    if (imageSourceMode === 'url') {
+      finalHeroImage = formImageUrl.trim();
+      if (!finalHeroImage) {
+        showToast('Please enter an image URL or switch to file upload', 'warning');
+        return;
+      }
+      try {
+        new URL(finalHeroImage);
+      } catch {
+        if (!finalHeroImage.startsWith('http://') && !finalHeroImage.startsWith('https://') && !finalHeroImage.startsWith('/')) {
+          showToast('Please enter a valid image URL (e.g. https://...)', 'warning');
+          return;
+        }
+      }
+    } else {
+      if (!finalHeroImage) {
+        showToast('Please upload a product image file or switch to image URL', 'warning');
+        return;
+      }
+    }
 
     const tagsArray = formDietaryTags.split(',').map(t => t.trim()).filter(Boolean);
 
@@ -177,7 +280,7 @@ export const ProductsPage: React.FC = () => {
         category: formCategory,
         categoryName: formCategoryName,
         shortDescription: formDesc.trim(),
-        heroImage: formImage.trim(),
+        heroImage: finalHeroImage,
         dietaryTags: tagsArray.length > 0 ? tagsArray : ['100% Pure'],
         variants: updatedVariants
       };
@@ -190,7 +293,7 @@ export const ProductsPage: React.FC = () => {
         category: formCategory,
         categoryName: formCategoryName,
         shortDescription: formDesc.trim(),
-        heroImage: formImage.trim(),
+        heroImage: finalHeroImage,
         dietaryTags: tagsArray.length > 0 ? tagsArray : ['100% Pure'],
         variants: [
           {
@@ -583,16 +686,45 @@ export const ProductsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Image Input with File Upload & Live Preview */}
-              <div className="space-y-2">
-                <label className="block font-bold text-stone-700 uppercase tracking-wider text-[10px]">
-                  Product Image (Upload PNG / JPG or Enter URL)
-                </label>
+              {/* Image Input with Mutually Exclusive File Upload & URL Options */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-stone-700 uppercase tracking-wider text-[10px]">
+                    Product Image (Upload PNG / JPG or Enter URL) *
+                  </label>
+
+                  {/* Mode Switcher */}
+                  <div className="inline-flex rounded-lg bg-stone-100 p-0.5 border border-stone-200">
+                    <button
+                      type="button"
+                      onClick={() => switchImageMode('upload')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                        imageSourceMode === 'upload'
+                          ? 'bg-[#0F3823] text-white shadow-xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => switchImageMode('url')}
+                      className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                        imageSourceMode === 'url'
+                          ? 'bg-[#0F3823] text-white shadow-xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      Enter URL
+                    </button>
+                  </div>
+                </div>
 
                 {/* Hidden File Input */}
                 <input
                   type="file"
                   ref={productFileInputRef}
+                  disabled={imageSourceMode !== 'upload'}
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
                       processProductFile(e.target.files[0]);
@@ -602,60 +734,87 @@ export const ProductsPage: React.FC = () => {
                   className="hidden"
                 />
 
-                {/* Dropzone Box */}
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDraggingProductImg(true); }}
-                  onDragLeave={() => setIsDraggingProductImg(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDraggingProductImg(false);
-                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                      processProductFile(e.dataTransfer.files[0]);
-                    }
-                  }}
-                  onClick={() => productFileInputRef.current?.click()}
-                  className={`p-4 border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all flex items-center justify-between gap-4 ${
-                    isDraggingProductImg
-                      ? 'border-[#0F3823] bg-[#0F3823]/10'
-                      : 'border-stone-200 hover:border-[#D4AF37] bg-stone-50/80 hover:bg-amber-50/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 text-left">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#B8860B] flex items-center justify-center shrink-0">
-                      <Upload className="w-5 h-5" />
+                {imageSourceMode === 'upload' ? (
+                  /* Option A: Dropzone Box for File Upload */
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setIsDraggingProductImg(true);
+                    }}
+                    onDragLeave={() => setIsDraggingProductImg(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDraggingProductImg(false);
+                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        processProductFile(e.dataTransfer.files[0]);
+                      }
+                    }}
+                    onClick={() => productFileInputRef.current?.click()}
+                    className={`p-4 border-2 border-dashed rounded-2xl text-center cursor-pointer transition-all flex items-center justify-between gap-4 ${
+                      isDraggingProductImg
+                        ? 'border-[#0F3823] bg-[#0F3823]/10'
+                        : 'border-stone-200 hover:border-[#D4AF37] bg-stone-50/80 hover:bg-amber-50/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 text-left">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#B8860B] flex items-center justify-center shrink-0">
+                        <Upload className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-stone-800">
+                          {isUploadingImage
+                            ? 'Uploading image to server...'
+                            : productFileName
+                            ? `Selected: ${productFileName}`
+                            : 'Click to Upload Image File'}
+                        </p>
+                        <p className="text-[10px] text-stone-500">Supports PNG, JPG, JPEG, WebP (Max 8MB)</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-stone-800">
-                        {productFileName ? `Selected: ${productFileName}` : 'Click to Upload Image File'}
-                      </p>
-                      <p className="text-[10px] text-stone-500">Supports PNG, JPG, WebP (Max 8MB)</p>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {formImage && (
+                        <img
+                          src={formImage}
+                          alt="Preview"
+                          className="w-11 h-11 rounded-xl object-cover border border-stone-200 shadow-xs"
+                        />
+                      )}
+                      <span className="px-2.5 py-1 rounded-lg bg-white border border-stone-200 text-stone-700 font-semibold text-[10px] shadow-xs">
+                        Browse
+                      </span>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {formImage && (
-                      <img
-                        src={formImage}
-                        alt="Preview"
-                        className="w-11 h-11 rounded-xl object-cover border border-stone-200 shadow-xs"
+                ) : (
+                  /* Option B: Enter / Paste Image URL */
+                  <div className="space-y-2">
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={formImageUrl}
+                        onChange={(e) => handleImageUrlChange(e.target.value)}
+                        placeholder="Paste image URL (https://images.unsplash.com/...)"
+                        className="flex-1 p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 text-xs focus:outline-none focus:border-[#D4AF37] focus:bg-white"
                       />
-                    )}
-                    <span className="px-2.5 py-1 rounded-lg bg-white border border-stone-200 text-stone-700 font-semibold text-[10px] shadow-xs">
-                      Browse
-                    </span>
+                      {formImageUrl && (
+                        <img
+                          src={formImageUrl}
+                          alt="Preview"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                          onLoad={(e) => {
+                            (e.target as HTMLElement).style.display = 'block';
+                          }}
+                          className="w-10 h-10 rounded-xl object-cover border border-stone-200 shadow-xs shrink-0"
+                        />
+                      )}
+                    </div>
+                    <p className="text-[10px] text-stone-400">
+                      Enter a direct public image link (e.g. Unsplash, Cloudinary, or CDN)
+                    </p>
                   </div>
-                </div>
-
-                {/* Or paste URL */}
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="url"
-                    value={formImage}
-                    onChange={(e) => setFormImage(e.target.value)}
-                    placeholder="Or paste image URL (https://images.unsplash.com/...)"
-                    className="flex-1 p-2 bg-stone-50 border border-stone-200 rounded-xl text-stone-800 text-[11px] focus:outline-none focus:border-[#D4AF37]"
-                  />
-                </div>
+                )}
               </div>
 
               {/* Short Description with AI Assistance Button */}

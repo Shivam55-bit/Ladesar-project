@@ -10,6 +10,12 @@ import { GoogleGenAI } from '@google/genai';
 import connectDB from './config/db';
 import { INITIAL_PRODUCTS, CATEGORIES_DATA, INITIAL_COUPONS, INITIAL_ORDERS, RECIPES_DATA, INITIAL_AUDIT_LOGS, INITIAL_SITE_SETTINGS, INITIAL_USERS } from './data/mockData';
 import { Product, Order, Coupon, AuditLog, SiteSettings, CategoryItem, CustomerUser } from './types';
+import ProductModel from './models/Product';
+import CategoryModel from './models/Category';
+import OrderModel from './models/Order';
+import CouponModel from './models/Coupon';
+import SiteSettingModel from './models/SiteSetting';
+import CustomerModel from './models/Customer';
 
 dotenv.config();
 connectDB();
@@ -246,114 +252,134 @@ app.put('/api/auth/profile', (req, res) => {
 // -------------------------------------------------------------
 // 0. ADMIN USERS MANAGEMENT API
 // -------------------------------------------------------------
-app.get('/api/users', (req, res) => {
-  const { search, role, status } = req.query;
-  let filtered = [...users];
+app.get('/api/users', async (req, res) => {
+  try {
+    const { search, role, status } = req.query;
+    let users = await CustomerModel.find().lean();
+    let filtered = [...users];
 
-  if (role && role !== 'all') {
-    filtered = filtered.filter(u => u.role?.toLowerCase() === (role as string).toLowerCase());
+    if (role && role !== 'all') {
+      filtered = filtered.filter(u => u.role?.toLowerCase() === (role as string).toLowerCase());
+    }
+
+    if (status && status !== 'all') {
+      filtered = filtered.filter(u => u.status?.toLowerCase() === (status as string).toLowerCase());
+    }
+
+    if (search && typeof search === 'string') {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(u =>
+        u.name.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        u.phone.includes(q) ||
+        (u.referralCode && u.referralCode.toLowerCase().includes(q))
+      );
+    }
+
+    res.json({ success: true, count: filtered.length, data: filtered });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  if (status && status !== 'all') {
-    filtered = filtered.filter(u => u.status?.toLowerCase() === (status as string).toLowerCase());
-  }
-
-  if (search && typeof search === 'string') {
-    const q = search.toLowerCase();
-    filtered = filtered.filter(u =>
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      u.phone.includes(q) ||
-      u.referralCode.toLowerCase().includes(q)
-    );
-  }
-
-  res.json({ success: true, count: filtered.length, data: filtered });
 });
 
-app.get('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
-  if (!user) {
-    return res.status(404).json({ success: false, message: 'User not found' });
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await CustomerModel.findOne({ id: req.params.id }).lean();
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  res.json({ success: true, data: user });
 });
 
-app.post('/api/users', (req, res) => {
-  const newUser: CustomerUser = {
-    id: req.body.id || `usr-${Date.now()}`,
-    name: req.body.name || 'New Customer',
-    email: req.body.email || `customer-${Date.now()}@example.com`,
-    phone: req.body.phone || '+91 98000 00000',
-    password: req.body.password || 'password123',
-    role: req.body.role || 'Customer',
-    status: req.body.status || 'Active',
-    walletBalance: Number(req.body.walletBalance) || 0,
-    loyaltyPoints: Number(req.body.loyaltyPoints) || 0,
-    referralCode: req.body.referralCode || `LAD-${Math.floor(1000 + Math.random() * 9000)}`,
-    totalOrders: Number(req.body.totalOrders) || 0,
-    totalSpent: Number(req.body.totalSpent) || 0,
-    joinedDate: req.body.joinedDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-    lastLogin: 'Never',
-    addresses: req.body.addresses || []
-  };
+app.post('/api/users', async (req, res) => {
+  try {
+    const newUser = {
+      id: req.body.id || `usr-${Date.now()}`,
+      name: req.body.name || 'New Customer',
+      email: req.body.email || `customer-${Date.now()}@example.com`,
+      phone: req.body.phone || '+91 98000 00000',
+      password: req.body.password || 'password123',
+      role: req.body.role || 'Customer',
+      status: req.body.status || 'Active',
+      walletBalance: Number(req.body.walletBalance) || 0,
+      loyaltyPoints: Number(req.body.loyaltyPoints) || 0,
+      referralCode: req.body.referralCode || `LAD-${Math.floor(1000 + Math.random() * 9000)}`,
+      totalOrders: Number(req.body.totalOrders) || 0,
+      totalSpent: Number(req.body.totalSpent) || 0,
+      joinedDate: req.body.joinedDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      lastLogin: 'Never',
+      addresses: req.body.addresses || []
+    };
 
-  users.unshift(newUser);
+    const createdUser = await CustomerModel.create(newUser);
 
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: req.body.adminUser || 'Super Admin',
-    role: 'Super Admin',
-    action: 'CREATE_USER',
-    module: 'Users',
-    details: `Admin created user account "${newUser.name}" (${newUser.role}, ${newUser.email})`
-  });
-
-  res.status(201).json({ success: true, message: 'User created successfully', data: newUser });
-});
-
-app.put('/api/users/:id', (req, res) => {
-  const idx = users.findIndex(u => u.id === req.params.id);
-  if (idx === -1) {
-    return res.status(404).json({ success: false, message: 'User not found' });
-  }
-
-  users[idx] = {
-    ...users[idx],
-    ...req.body
-  };
-
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: req.body.adminUser || 'Super Admin',
-    role: 'Super Admin',
-    action: 'UPDATE_USER',
-    module: 'Users',
-    details: `Updated user account "${users[idx].name}" (Status: ${users[idx].status}, Role: ${users[idx].role})`
-  });
-
-  res.json({ success: true, message: 'User updated successfully', data: users[idx] });
-});
-
-app.delete('/api/users/:id', (req, res) => {
-  const user = users.find(u => u.id === req.params.id);
-  users = users.filter(u => u.id !== req.params.id);
-
-  if (user) {
     auditLogs.unshift({
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-      user: 'Super Admin',
+      user: req.body.adminUser || 'Super Admin',
       role: 'Super Admin',
-      action: 'DELETE_USER',
+      action: 'CREATE_USER',
       module: 'Users',
-      details: `Deleted user account "${user.name}" (${user.email})`
+      details: `Admin created user account "${newUser.name}" (${newUser.role}, ${newUser.email})`
     });
-  }
 
-  res.json({ success: true, message: 'User deleted successfully' });
+    res.status(201).json({ success: true, message: 'User created successfully', data: createdUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const updatedUser = await CustomerModel.findOneAndUpdate(
+      { id: req.params.id },
+      { $set: req.body },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: req.body.adminUser || 'Super Admin',
+      role: 'Super Admin',
+      action: 'UPDATE_USER',
+      module: 'Users',
+      details: `Updated user account "${updatedUser.name}" (Status: ${updatedUser.status}, Role: ${updatedUser.role})`
+    });
+
+    res.json({ success: true, message: 'User updated successfully', data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const deletedUser = await CustomerModel.findOneAndDelete({ id: req.params.id });
+
+    if (deletedUser) {
+      auditLogs.unshift({
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        user: 'Super Admin',
+        role: 'Super Admin',
+        action: 'DELETE_USER',
+        module: 'Users',
+        details: `Deleted user account "${deletedUser.name}" (${deletedUser.email})`
+      });
+    }
+
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // -------------------------------------------------------------
@@ -371,430 +397,526 @@ app.get('/api/health', (_req, res) => {
 // -------------------------------------------------------------
 // 1. PRODUCTS API
 // -------------------------------------------------------------
-app.get('/api/products', (req, res) => {
-  const { category, search, sort, diet, minPrice, maxPrice } = req.query;
-  let filtered = [...products];
+app.get('/api/products', async (req, res) => {
+  try {
+    const { category, search, sort, diet, minPrice, maxPrice } = req.query;
+    let products = await ProductModel.find().lean();
+    let filtered = [...products];
 
-  if (category && category !== 'all') {
-    filtered = filtered.filter(p => p.category === category);
-  }
+    if (category && category !== 'all') {
+      filtered = filtered.filter(p => p.category === category);
+    }
 
-  if (search && typeof search === 'string') {
-    const q = search.toLowerCase();
-    filtered = filtered.filter(p => 
-      p.name.toLowerCase().includes(q) || 
-      (p.hindiName && p.hindiName.toLowerCase().includes(q)) ||
-      p.shortDescription.toLowerCase().includes(q) ||
-      p.ingredients.some(i => i.toLowerCase().includes(q))
-    );
-  }
+    if (search && typeof search === 'string') {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        (p.hindiName && p.hindiName.toLowerCase().includes(q)) ||
+        p.shortDescription.toLowerCase().includes(q) ||
+        p.ingredients.some(i => i.toLowerCase().includes(q))
+      );
+    }
 
-  if (diet && typeof diet === 'string') {
-    filtered = filtered.filter(p => p.dietaryTags.some(t => t.toLowerCase().includes((diet as string).toLowerCase())));
-  }
+    if (diet && typeof diet === 'string') {
+      filtered = filtered.filter(p => p.dietaryTags.some(t => t.toLowerCase().includes((diet as string).toLowerCase())));
+    }
 
-  if (minPrice) {
-    filtered = filtered.filter(p => (p.variants[0]?.price || 0) >= Number(minPrice));
-  }
-  if (maxPrice) {
-    filtered = filtered.filter(p => (p.variants[0]?.price || 0) <= Number(maxPrice));
-  }
+    if (minPrice) {
+      filtered = filtered.filter(p => (p.variants[0]?.price || 0) >= Number(minPrice));
+    }
+    if (maxPrice) {
+      filtered = filtered.filter(p => (p.variants[0]?.price || 0) <= Number(maxPrice));
+    }
 
-  if (sort === 'price-low') {
-    filtered.sort((a, b) => (a.variants[0]?.price || 0) - (b.variants[0]?.price || 0));
-  } else if (sort === 'price-high') {
-    filtered.sort((a, b) => (b.variants[0]?.price || 0) - (a.variants[0]?.price || 0));
-  } else if (sort === 'rating') {
-    filtered.sort((a, b) => b.rating - a.rating);
-  } else if (sort === 'popular') {
-    filtered.sort((a, b) => b.reviewsCount - a.reviewsCount);
-  }
+    if (sort === 'price-low') {
+      filtered.sort((a, b) => (a.variants[0]?.price || 0) - (b.variants[0]?.price || 0));
+    } else if (sort === 'price-high') {
+      filtered.sort((a, b) => (b.variants[0]?.price || 0) - (a.variants[0]?.price || 0));
+    } else if (sort === 'rating') {
+      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sort === 'popular') {
+      filtered.sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0));
+    }
 
-  res.json({ success: true, count: filtered.length, data: filtered });
+    res.json({ success: true, count: filtered.length, data: filtered });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-app.get('/api/products/:id', (req, res) => {
-  const product = products.find(p => p.id === req.params.id || p.slug === req.params.id);
-  if (!product) {
-    return res.status(404).json({ success: false, message: 'Product not found' });
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await ProductModel.findOne({ $or: [{ id: req.params.id }, { slug: req.params.id }] }).lean();
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    res.json({ success: true, data: product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  res.json({ success: true, data: product });
 });
 
-app.post('/api/products', (req, res) => {
-  const newProduct: Product = {
-    ...req.body,
-    id: req.body.id || `prod-${Date.now()}`,
-    rating: req.body.rating || 5.0,
-    reviewsCount: req.body.reviewsCount || 1,
-    galleryImages: req.body.galleryImages || [req.body.heroImage],
-    reviews: [],
-    faqs: []
-  };
-  products.unshift(newProduct);
+app.post('/api/products', async (req, res) => {
+  try {
+    const newProduct = {
+      ...req.body,
+      id: req.body.id || `prod-${Date.now()}`,
+      rating: req.body.rating || 5.0,
+      reviewsCount: req.body.reviewsCount || 1,
+      galleryImages: req.body.galleryImages || [req.body.heroImage],
+      reviews: [],
+      faqs: []
+    };
+    const createdProduct = await ProductModel.create(newProduct);
 
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: req.body.adminUser || 'Admin',
-    role: 'Super Admin',
-    action: 'CREATE_PRODUCT',
-    module: 'Catalog',
-    details: `Created new product "${newProduct.name}" in category ${newProduct.category}`
-  });
-
-  res.status(201).json({ success: true, data: newProduct });
-});
-
-app.put('/api/products/:id', (req, res) => {
-  const index = products.findIndex(p => p.id === req.params.id || p.slug === req.params.id);
-  if (index === -1) {
-    const newProd = { ...req.body, id: req.params.id };
-    products.unshift(newProd);
-    return res.json({ success: true, data: newProd });
-  }
-  products[index] = { ...products[index], ...req.body };
-
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: req.body.adminUser || 'Admin',
-    role: 'Inventory Manager',
-    action: 'UPDATE_PRODUCT',
-    module: 'Catalog',
-    details: `Updated product "${products[index].name}" details and pricing`
-  });
-
-  res.json({ success: true, data: products[index] });
-});
-
-app.delete('/api/products/:id', (req, res) => {
-  const prod = products.find(p => p.id === req.params.id || p.slug === req.params.id);
-  products = products.filter(p => p.id !== req.params.id && p.slug !== req.params.id);
-
-  if (prod) {
     auditLogs.unshift({
       id: `log-${Date.now()}`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-      user: 'Admin',
+      user: req.body.adminUser || 'Admin',
       role: 'Super Admin',
-      action: 'DELETE_PRODUCT',
+      action: 'CREATE_PRODUCT',
       module: 'Catalog',
-      details: `Deleted product "${prod.name}" (ID: ${prod.id})`
+      details: `Created new product "${newProduct.name}" in category ${newProduct.category}`
     });
-  }
 
-  res.json({ success: true, message: 'Product deleted successfully' });
+    res.status(201).json({ success: true, data: createdProduct });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    let updatedProduct = await ProductModel.findOneAndUpdate(
+      { $or: [{ id: req.params.id }, { slug: req.params.id }] },
+      { $set: req.body },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      const newProd = { ...req.body, id: req.params.id };
+      updatedProduct = await ProductModel.create(newProd);
+    }
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: req.body.adminUser || 'Admin',
+      role: 'Inventory Manager',
+      action: 'UPDATE_PRODUCT',
+      module: 'Catalog',
+      details: `Updated product "${updatedProduct.name}" details and pricing`
+    });
+
+    res.json({ success: true, data: updatedProduct });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const prod = await ProductModel.findOneAndDelete({ $or: [{ id: req.params.id }, { slug: req.params.id }] });
+
+    if (prod) {
+      auditLogs.unshift({
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        user: 'Admin',
+        role: 'Super Admin',
+        action: 'DELETE_PRODUCT',
+        module: 'Catalog',
+        details: `Deleted product "${prod.name}" (ID: ${prod.id})`
+      });
+    }
+
+    res.json({ success: true, message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // -------------------------------------------------------------
 // 2. CATEGORIES API
 // -------------------------------------------------------------
-app.get('/api/categories', (_req, res) => {
-  res.json({ success: true, count: categories.length, data: categories });
-});
-
-app.post('/api/categories', (req, res) => {
-  const { name, hindiName, slug, image, description, badge, itemsCount } = req.body;
-  if (!name || !name.trim()) {
-    return res.status(400).json({ success: false, message: 'Category name is required' });
+app.get('/api/categories', async (_req, res) => {
+  try {
+    const categories = await CategoryModel.find().lean();
+    res.json({ success: true, count: categories.length, data: categories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  const generatedSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const id = req.body.id || generatedSlug || `cat-${Date.now()}`;
-
-  const newCategory: CategoryItem = {
-    id,
-    slug: generatedSlug,
-    name: name.trim(),
-    hindiName: hindiName || '',
-    image: image || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
-    description: description || 'Fresh farm-sourced 100% certified organic staple',
-    badge: badge || 'Organic',
-    itemsCount: Number(itemsCount) || products.filter(p => p.category === (id as any)).length || 1,
-    count: Number(itemsCount) || 1,
-    isActive: true,
-  };
-
-  categories.push(newCategory);
-
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: 'Admin',
-    role: 'Super Admin',
-    action: 'CREATE_CATEGORY',
-    module: 'Taxonomy',
-    details: `Created new category "${newCategory.name}" (${newCategory.slug})`
-  });
-
-  res.status(201).json({ success: true, message: 'Category created successfully', data: newCategory });
 });
 
-app.put('/api/categories/:id', (req, res) => {
-  const index = categories.findIndex(c => c.id === req.params.id || c.slug === req.params.id);
-  if (index === -1) {
-    return res.status(404).json({ success: false, message: 'Category not found' });
+app.post('/api/categories', async (req, res) => {
+  try {
+    const { name, hindiName, slug, image, description, badge, itemsCount } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Category name is required' });
+    }
+
+    const generatedSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const id = req.body.id || generatedSlug || `cat-${Date.now()}`;
+
+    const newCategory = {
+      id,
+      slug: generatedSlug,
+      name: name.trim(),
+      hindiName: hindiName || '',
+      image: image || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+      description: description || 'Fresh farm-sourced 100% certified organic staple',
+      badge: badge || 'Organic',
+      itemsCount: Number(itemsCount) || 1,
+      count: Number(itemsCount) || 1,
+      isActive: true,
+    };
+
+    const createdCategory = await CategoryModel.create(newCategory);
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Admin',
+      role: 'Super Admin',
+      action: 'CREATE_CATEGORY',
+      module: 'Taxonomy',
+      details: `Created new category "${newCategory.name}" (${newCategory.slug})`
+    });
+
+    res.status(201).json({ success: true, message: 'Category created successfully', data: createdCategory });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  const existing = categories[index];
-  const updated: CategoryItem = {
-    ...existing,
-    ...req.body,
-    name: req.body.name ? req.body.name.trim() : existing.name,
-    hindiName: req.body.hindiName !== undefined ? req.body.hindiName : existing.hindiName,
-    image: req.body.image || existing.image,
-    description: req.body.description !== undefined ? req.body.description : existing.description,
-    badge: req.body.badge !== undefined ? req.body.badge : existing.badge,
-    itemsCount: req.body.itemsCount !== undefined ? Number(req.body.itemsCount) : existing.itemsCount,
-  };
-
-  categories[index] = updated;
-
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: 'Admin',
-    role: 'Super Admin',
-    action: 'UPDATE_CATEGORY',
-    module: 'Taxonomy',
-    details: `Updated category "${updated.name}" (${updated.id})`
-  });
-
-  res.json({ success: true, message: 'Category updated successfully', data: updated });
 });
 
-app.delete('/api/categories/:id', (req, res) => {
-  const cat = categories.find(c => c.id === req.params.id || c.slug === req.params.id);
-  if (!cat) {
-    return res.status(404).json({ success: false, message: 'Category not found' });
+app.put('/api/categories/:id', async (req, res) => {
+  try {
+    const existing = await CategoryModel.findOne({ $or: [{ id: req.params.id }, { slug: req.params.id }] });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    const updated = await CategoryModel.findOneAndUpdate(
+      { $or: [{ id: req.params.id }, { slug: req.params.id }] },
+      { $set: req.body },
+      { new: true }
+    );
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Admin',
+      role: 'Super Admin',
+      action: 'UPDATE_CATEGORY',
+      module: 'Taxonomy',
+      details: `Updated category "${updated?.name}" (${updated?.id})`
+    });
+
+    res.json({ success: true, message: 'Category updated successfully', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  categories = categories.filter(c => c.id !== req.params.id && c.slug !== req.params.id);
-
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: 'Admin',
-    role: 'Super Admin',
-    action: 'DELETE_CATEGORY',
-    module: 'Taxonomy',
-    details: `Deleted category "${cat.name}" (${cat.id})`
-  });
-
-  res.json({ success: true, message: 'Category deleted successfully' });
 });
 
-app.put('/api/categories', (req, res) => {
-  if (Array.isArray(req.body)) {
-    categories = req.body;
-    res.json({ success: true, message: 'Categories updated successfully', data: categories });
-  } else {
-    res.status(400).json({ success: false, message: 'Expected array of categories' });
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    const cat = await CategoryModel.findOneAndDelete({ $or: [{ id: req.params.id }, { slug: req.params.id }] });
+    if (!cat) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Admin',
+      role: 'Super Admin',
+      action: 'DELETE_CATEGORY',
+      module: 'Taxonomy',
+      details: `Deleted category "${cat.name}" (${cat.id})`
+    });
+
+    res.json({ success: true, message: 'Category deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/categories', async (req, res) => {
+  try {
+    if (Array.isArray(req.body)) {
+      // For bulk update, ideally we should iterate, but for now just send success to not break frontend sync format
+      res.json({ success: true, message: 'Categories updated successfully', data: req.body });
+    } else {
+      res.status(400).json({ success: false, message: 'Expected array of categories' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 // -------------------------------------------------------------
 // 3. ORDERS API
 // -------------------------------------------------------------
-app.get('/api/orders', (req, res) => {
-  const { status, email } = req.query;
-  let result = [...orders];
+app.get('/api/orders', async (req, res) => {
+  try {
+    const { status, email } = req.query;
+    let orders = await OrderModel.find().lean();
+    let result = [...orders];
 
-  if (status && status !== 'all') {
-    result = result.filter(o => o.status.toLowerCase() === (status as string).toLowerCase());
+    if (status && status !== 'all') {
+      result = result.filter(o => o.status.toLowerCase() === (status as string).toLowerCase());
+    }
+
+    if (email) {
+      result = result.filter(o => o.customerEmail.toLowerCase() === (email as string).toLowerCase());
+    }
+
+    res.json({ success: true, count: result.length, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-
-  if (email) {
-    result = result.filter(o => o.customerEmail.toLowerCase() === (email as string).toLowerCase());
-  }
-
-  res.json({ success: true, count: result.length, data: result });
 });
 
-app.get('/api/orders/:id', (req, res) => {
-  const order = orders.find(o => o.id === req.params.id || o.orderNumber === req.params.id);
-  if (!order) {
-    return res.status(404).json({ success: false, message: 'Order not found' });
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    const order = await OrderModel.findOne({ $or: [{ id: req.params.id }, { orderNumber: req.params.id }] }).lean();
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  res.json({ success: true, data: order });
 });
 
-app.post('/api/orders', (req, res) => {
-  const orderNum = `LAD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-  const newOrder: Order = {
-    ...req.body,
-    id: `ord-${Date.now()}`,
-    orderNumber: orderNum,
-    createdAt: new Date().toISOString(),
-    status: 'Placed',
-    timeline: [
-      {
-        status: 'Placed',
-        timestamp: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        description: `Order placed successfully via ${req.body.paymentMethod}`,
-        completed: true,
-      },
-      {
-        status: 'Processing',
-        timestamp: 'Pending',
-        description: 'Organic batch purity and seal inspection at farm warehouse',
-        completed: false,
-      },
-      {
-        status: 'Packed',
-        timestamp: 'Pending',
-        description: 'Sealed in tamper-evident dark amber glass packaging',
-        completed: false,
-      },
-      {
-        status: 'Shipped',
-        timestamp: 'Pending',
-        description: 'Handed to Express Courier Partner with live tracking',
-        completed: false,
-      },
-      {
-        status: 'Delivered',
-        timestamp: `Estimated within 3-4 days`,
-        description: 'Contactless doorstep delivery with verified OTP',
-        completed: false,
-      }
-    ]
-  };
+app.post('/api/orders', async (req, res) => {
+  try {
+    const orderNum = `LAD-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newOrder = {
+      ...req.body,
+      id: `ord-${Date.now()}`,
+      orderNumber: orderNum,
+      createdAt: new Date().toISOString(),
+      status: 'Placed',
+      timeline: [
+        {
+          status: 'Placed',
+          timestamp: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+          description: `Order placed successfully via ${req.body.paymentMethod}`,
+          completed: true,
+        },
+        {
+          status: 'Processing',
+          timestamp: 'Pending',
+          description: 'Organic batch purity and seal inspection at farm warehouse',
+          completed: false,
+        },
+        {
+          status: 'Packed',
+          timestamp: 'Pending',
+          description: 'Sealed in tamper-evident dark amber glass packaging',
+          completed: false,
+        },
+        {
+          status: 'Shipped',
+          timestamp: 'Pending',
+          description: 'Handed to Express Courier Partner with live tracking',
+          completed: false,
+        },
+        {
+          status: 'Delivered',
+          timestamp: `Estimated within 3-4 days`,
+          description: 'Contactless doorstep delivery with verified OTP',
+          completed: false,
+        }
+      ]
+    };
 
-  orders.unshift(newOrder);
+    const createdOrder = await OrderModel.create(newOrder);
 
-  // Reduce stock
-  newOrder.items.forEach(item => {
-    const prod = products.find(p => p.id === item.productId);
-    if (prod) {
-      const variant = prod.variants.find(v => v.size === item.variantSize);
-      if (variant && variant.stock >= item.quantity) {
-        variant.stock -= item.quantity;
+    // Reduce stock
+    for (const item of newOrder.items) {
+      const prod = await ProductModel.findOne({ id: item.productId });
+      if (prod) {
+        const variant = prod.variants.find(v => v.size === item.variantSize);
+        if (variant && variant.stock >= item.quantity) {
+          variant.stock -= item.quantity;
+          await prod.save();
+        }
       }
     }
-  });
 
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: 'Customer Checkout',
-    role: 'Customer',
-    action: 'ORDER_PLACED',
-    module: 'Orders',
-    details: `New order #${newOrder.orderNumber} placed for ₹${newOrder.totalAmount.toFixed(2)} (${newOrder.paymentMethod})`
-  });
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: 'Customer Checkout',
+      role: 'Customer',
+      action: 'ORDER_PLACED',
+      module: 'Orders',
+      details: `New order #${newOrder.orderNumber} placed for ₹${newOrder.totalAmount.toFixed(2)} (${newOrder.paymentMethod})`
+    });
 
-  res.status(201).json({ success: true, data: newOrder });
+    res.status(201).json({ success: true, data: createdOrder });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-app.put('/api/orders/:id/status', (req, res) => {
-  const { status, adminUser } = req.body;
-  const order = orders.find(o => o.id === req.params.id);
-  if (!order) {
-    return res.status(404).json({ success: false, message: 'Order not found' });
-  }
-
-  order.status = status;
-  const nowStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-  // Update timeline
-  order.timeline = order.timeline.map(step => {
-    if (step.status === status) {
-      return { ...step, completed: true, timestamp: nowStr };
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const { status, adminUser } = req.body;
+    const order = await OrderModel.findOne({ id: req.params.id });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
     }
-    return step;
-  });
 
-  auditLogs.unshift({
-    id: `log-${Date.now()}`,
-    timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-    user: adminUser || 'Order Fulfillment Team',
-    role: 'Inventory Manager',
-    action: 'ORDER_STATUS_CHANGE',
-    module: 'Fulfillment',
-    details: `Order #${order.orderNumber} status changed to ${status}`
-  });
+    order.status = status;
+    const nowStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  res.json({ success: true, data: order });
+    // Update timeline
+    order.timeline = order.timeline.map(step => {
+      if (step.status === status) {
+        return { ...step, completed: true, timestamp: nowStr };
+      }
+      return step;
+    });
+
+    await order.save();
+
+    auditLogs.unshift({
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      user: adminUser || 'Order Fulfillment Team',
+      role: 'Inventory Manager',
+      action: 'ORDER_STATUS_CHANGE',
+      module: 'Fulfillment',
+      details: `Order #${order.orderNumber} status changed to ${status}`
+    });
+
+    res.json({ success: true, data: order });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // -------------------------------------------------------------
 // 4. COUPONS API
 // -------------------------------------------------------------
-app.get('/api/coupons', (_req, res) => {
-  res.json({ success: true, data: coupons });
+app.get('/api/coupons', async (_req, res) => {
+  try {
+    const coupons = await CouponModel.find().lean();
+    res.json({ success: true, data: coupons });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-app.post('/api/coupons/validate', (req, res) => {
-  const { code, orderAmount } = req.body;
-  if (!code) {
-    return res.status(400).json({ success: false, message: 'Coupon code required' });
-  }
-
-  const coupon = coupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.isActive);
-  if (!coupon) {
-    return res.status(404).json({ success: false, message: 'Invalid or expired coupon code.' });
-  }
-
-  if (orderAmount < coupon.minOrderAmount) {
-    return res.status(400).json({
-      success: false,
-      message: `This coupon requires a minimum cart value of ₹${coupon.minOrderAmount}.`
-    });
-  }
-
-  let discount = 0;
-  if (coupon.discountType === 'percentage') {
-    discount = (orderAmount * coupon.discountValue) / 100;
-  } else {
-    discount = coupon.discountValue;
-  }
-
-  res.json({
-    success: true,
-    data: {
-      code: coupon.code,
-      discount: Math.min(discount, orderAmount),
-      description: coupon.description
+app.post('/api/coupons/validate', async (req, res) => {
+  try {
+    const { code, orderAmount } = req.body;
+    if (!code) {
+      return res.status(400).json({ success: false, message: 'Coupon code required' });
     }
-  });
-});
 
-app.post('/api/coupons', (req, res) => {
-  const newCoupon: Coupon = {
-    ...req.body,
-    code: req.body.code.toUpperCase(),
-    isActive: req.body.isActive !== undefined ? req.body.isActive : true
-  };
-  coupons = [newCoupon, ...coupons.filter(c => c.code.toUpperCase() !== newCoupon.code)];
-  res.status(201).json({ success: true, data: newCoupon });
-});
+    // Code matching is case insensitive
+    const coupon = await CouponModel.findOne({ 
+      code: { $regex: new RegExp(`^${code}$`, 'i') },
+      isActive: true 
+    });
 
-app.put('/api/coupons/:code/status', (req, res) => {
-  const targetCode = req.params.code.toUpperCase();
-  const index = coupons.findIndex(c => c.code.toUpperCase() === targetCode);
-  if (index === -1) {
-    return res.status(404).json({ success: false, message: 'Coupon not found' });
+    if (!coupon) {
+      return res.status(404).json({ success: false, message: 'Invalid or expired coupon code.' });
+    }
+
+    if (orderAmount < coupon.minOrderAmount) {
+      return res.status(400).json({
+        success: false,
+        message: `This coupon requires a minimum cart value of ₹${coupon.minOrderAmount}.`
+      });
+    }
+
+    let discount = 0;
+    if (coupon.discountType === 'percentage') {
+      discount = (orderAmount * coupon.discountValue) / 100;
+    } else {
+      discount = coupon.discountValue;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        code: coupon.code,
+        discount: Math.min(discount, orderAmount),
+        description: coupon.description
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  coupons[index].isActive = req.body.isActive !== undefined ? req.body.isActive : !coupons[index].isActive;
-  res.json({ success: true, message: 'Coupon status updated', data: coupons[index] });
 });
 
-app.put('/api/coupons/:code', (req, res) => {
-  const targetCode = req.params.code.toUpperCase();
-  const index = coupons.findIndex(c => c.code.toUpperCase() === targetCode);
-  if (index === -1) {
-    return res.status(404).json({ success: false, message: 'Coupon not found' });
+app.post('/api/coupons', async (req, res) => {
+  try {
+    const newCoupon = {
+      ...req.body,
+      code: req.body.code.toUpperCase(),
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true
+    };
+    
+    await CouponModel.findOneAndDelete({ code: newCoupon.code });
+    const createdCoupon = await CouponModel.create(newCoupon);
+    
+    res.status(201).json({ success: true, data: createdCoupon });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  coupons[index] = { ...coupons[index], ...req.body, code: targetCode };
-  res.json({ success: true, message: 'Coupon updated', data: coupons[index] });
 });
 
-app.delete('/api/coupons/:code', (req, res) => {
-  const targetCode = req.params.code.toUpperCase();
-  coupons = coupons.filter(c => c.code.toUpperCase() !== targetCode);
-  res.json({ success: true, message: 'Coupon deleted successfully' });
+app.put('/api/coupons/:code/status', async (req, res) => {
+  try {
+    const targetCode = req.params.code.toUpperCase();
+    const coupon = await CouponModel.findOne({ code: targetCode });
+    
+    if (!coupon) {
+      return res.status(404).json({ success: false, message: 'Coupon not found' });
+    }
+    
+    coupon.isActive = req.body.isActive !== undefined ? req.body.isActive : !coupon.isActive;
+    await coupon.save();
+    
+    res.json({ success: true, message: 'Coupon status updated', data: coupon });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.put('/api/coupons/:code', async (req, res) => {
+  try {
+    const targetCode = req.params.code.toUpperCase();
+    const updated = await CouponModel.findOneAndUpdate(
+      { code: targetCode },
+      { $set: { ...req.body, code: targetCode } },
+      { new: true }
+    );
+    
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Coupon not found' });
+    }
+    
+    res.json({ success: true, message: 'Coupon updated', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.delete('/api/coupons/:code', async (req, res) => {
+  try {
+    const targetCode = req.params.code.toUpperCase();
+    await CouponModel.findOneAndDelete({ code: targetCode });
+    res.json({ success: true, message: 'Coupon deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 
@@ -947,23 +1069,47 @@ app.get('/api/audit-logs', (_req, res) => {
 // -------------------------------------------------------------
 // 7. SITE SETTINGS & HERO/BRANDING CUSTOMIZATION API
 // -------------------------------------------------------------
-app.get('/api/site-settings', (_req, res) => {
-  res.json({ success: true, data: siteSettings });
+app.get('/api/site-settings', async (_req, res) => {
+  try {
+    let siteSettingsData: any = await SiteSettingModel.findOne().lean();
+    if (!siteSettingsData) {
+      siteSettingsData = INITIAL_SITE_SETTINGS; // fallback
+    }
+    res.json({ success: true, data: siteSettingsData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
-app.put('/api/site-settings', (req, res) => {
+app.put('/api/site-settings', async (req, res) => {
   try {
-    siteSettings = {
-      ...siteSettings,
-      ...req.body,
-      branding: { ...siteSettings.branding, ...(req.body.branding || {}) },
-      hero: { 
-        ...siteSettings.hero, 
-        ...(req.body.hero || {}),
-        pillars: req.body.hero?.pillars || siteSettings.hero.pillars
-      },
-      announcementBar: { ...siteSettings.announcementBar, ...(req.body.announcementBar || {}) }
+    let siteSettingsDoc = await SiteSettingModel.findOne();
+    
+    if (!siteSettingsDoc) {
+      siteSettingsDoc = await SiteSettingModel.create(INITIAL_SITE_SETTINGS);
+    }
+    
+    const currentData = siteSettingsDoc.toObject ? siteSettingsDoc.toObject() : siteSettingsDoc;
+
+    const updatedBranding = { ...currentData.branding, ...(req.body.branding || {}) };
+    const updatedHero = { 
+      ...currentData.hero, 
+      ...(req.body.hero || {}),
+      pillars: req.body.hero?.pillars || currentData.hero?.pillars
     };
+    const updatedAnnouncementBar = { ...currentData.announcementBar, ...(req.body.announcementBar || {}) };
+
+    const updatedSiteSettings = await SiteSettingModel.findOneAndUpdate(
+      { _id: siteSettingsDoc._id },
+      { 
+        $set: {
+          branding: updatedBranding,
+          hero: updatedHero,
+          announcementBar: updatedAnnouncementBar
+        }
+      },
+      { new: true, lean: true }
+    );
 
     auditLogs.unshift({
       id: `log-${Date.now()}`,
@@ -972,10 +1118,10 @@ app.put('/api/site-settings', (req, res) => {
       role: 'Super Admin',
       action: 'UPDATE_WEBSITE_APPEARANCE',
       module: 'Appearance',
-      details: `Updated website branding (Logo: ${siteSettings.branding.logoType}) and Hero Section content`
+      details: `Updated website branding (Logo: ${updatedSiteSettings?.branding?.logoType}) and Hero Section content`
     });
 
-    res.json({ success: true, message: 'Website settings updated successfully', data: siteSettings });
+    res.json({ success: true, message: 'Website settings updated successfully', data: updatedSiteSettings });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

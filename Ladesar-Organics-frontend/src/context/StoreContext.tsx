@@ -269,20 +269,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         fetch('/api/coupons').then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
 
-      if (prodRes?.success && Array.isArray(prodRes.data) && prodRes.data.length > 0) {
-        setProducts(prodRes.data);
+      if (prodRes?.success && Array.isArray(prodRes.data)) {
+        setProducts(prev => JSON.stringify(prev) === JSON.stringify(prodRes.data) ? prev : prodRes.data);
       }
-      if (catRes?.success && Array.isArray(catRes.data) && catRes.data.length > 0) {
-        setCategories(catRes.data);
+      if (catRes?.success && Array.isArray(catRes.data)) {
+        setCategories(prev => JSON.stringify(prev) === JSON.stringify(catRes.data) ? prev : catRes.data);
       }
       if (setRes?.success && setRes.data) {
-        setSiteSettings(setRes.data);
+        setSiteSettings(prev => JSON.stringify(prev) === JSON.stringify(setRes.data) ? prev : setRes.data);
       }
       if (ordRes?.success && Array.isArray(ordRes.data)) {
-        setOrders(ordRes.data);
+        setOrders(prev => JSON.stringify(prev) === JSON.stringify(ordRes.data) ? prev : ordRes.data);
       }
       if (coupRes?.success && Array.isArray(coupRes.data)) {
-        setCoupons(coupRes.data);
+        setCoupons(prev => JSON.stringify(prev) === JSON.stringify(coupRes.data) ? prev : coupRes.data);
       }
     } catch {}
   };

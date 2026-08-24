@@ -1,5 +1,12 @@
 import Role from '../models/Role';
 import User from '../models/User';
+import ProductModel from '../models/Product';
+import CategoryModel from '../models/Category';
+import OrderModel from '../models/Order';
+import CouponModel from '../models/Coupon';
+import SiteSettingModel from '../models/SiteSetting';
+import CustomerModel from '../models/Customer';
+import { INITIAL_PRODUCTS, CATEGORIES_DATA, INITIAL_COUPONS, INITIAL_ORDERS, INITIAL_USERS, INITIAL_SITE_SETTINGS } from '../data/mockData';
 
 export const seedDatabase = async () => {
   try {
@@ -69,6 +76,43 @@ export const seedDatabase = async () => {
         isActive: true,
       });
       console.log('✅ Created Default Orders Fulfillment User (orders@ladesar.com / admin123)');
+    }
+
+    // 3. Seed Mock Data if collections are empty
+    const productCount = await ProductModel.countDocuments();
+    if (productCount === 0) {
+      await ProductModel.insertMany(INITIAL_PRODUCTS);
+      console.log('✅ Seeded Products');
+    }
+
+    const categoryCount = await CategoryModel.countDocuments();
+    if (categoryCount === 0) {
+      await CategoryModel.insertMany(CATEGORIES_DATA);
+      console.log('✅ Seeded Categories');
+    }
+
+    const customerCount = await CustomerModel.countDocuments();
+    if (customerCount === 0) {
+      await CustomerModel.insertMany(INITIAL_USERS);
+      console.log('✅ Seeded Customer Users');
+    }
+
+    const orderCount = await OrderModel.countDocuments();
+    if (orderCount === 0) {
+      await OrderModel.insertMany(INITIAL_ORDERS);
+      console.log('✅ Seeded Orders');
+    }
+
+    const couponCount = await CouponModel.countDocuments();
+    if (couponCount === 0) {
+      await CouponModel.insertMany(INITIAL_COUPONS);
+      console.log('✅ Seeded Coupons');
+    }
+
+    const siteSettingCount = await SiteSettingModel.countDocuments();
+    if (siteSettingCount === 0) {
+      await SiteSettingModel.create(INITIAL_SITE_SETTINGS);
+      console.log('✅ Seeded Site Settings');
     }
 
   } catch (error) {

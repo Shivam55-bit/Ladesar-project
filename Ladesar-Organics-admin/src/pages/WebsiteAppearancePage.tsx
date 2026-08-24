@@ -83,8 +83,14 @@ export const WebsiteAppearancePage: React.FC = () => {
   const [isDraggingHero, setIsDraggingHero] = useState(false);
   const heroFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Dirty flag to ensure background polling sync doesn't clobber active edits/uploads
+  const isDirtyRef = useRef(false);
+
+  // Sync with siteSettings from store only on initial mount or when user has no unsaved local changes
   useEffect(() => {
-    setFormState(siteSettings);
+    if (!isDirtyRef.current) {
+      setFormState(siteSettings);
+    }
   }, [siteSettings]);
 
   // Helper to upload file to backend server or fallback to FileReader
@@ -101,9 +107,12 @@ export const WebsiteAppearancePage: React.FC = () => {
         if (data.success && (data.path || data.url)) {
           return data.path || data.url;
         }
+      } else {
+        const errData = await res.json().catch(() => null);
+        console.warn('Backend upload returned error status:', res.status, errData);
       }
     } catch (err) {
-      console.warn('Backend upload failed, falling back to base64:', err);
+      console.warn('Backend upload request failed, falling back to base64:', err);
     }
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -124,6 +133,7 @@ export const WebsiteAppearancePage: React.FC = () => {
       return;
     }
 
+    isDirtyRef.current = true;
     setLogoFileName(file.name);
     setLogoFileSize((file.size / 1024).toFixed(1) + ' KB');
 
@@ -151,6 +161,7 @@ export const WebsiteAppearancePage: React.FC = () => {
       return;
     }
 
+    isDirtyRef.current = true;
     setHeroCardFileName(file.name);
     setHeroCardFileSize((file.size / 1024).toFixed(1) + ' KB');
 
@@ -165,12 +176,12 @@ export const WebsiteAppearancePage: React.FC = () => {
     showToast(`Uploaded Hero Image: "${file.name}"`, 'success');
   };
 
-
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
       await updateSiteSettings(formState);
+      isDirtyRef.current = false;
     } catch {
       showToast('Failed to update website appearance', 'error');
     } finally {
@@ -180,6 +191,7 @@ export const WebsiteAppearancePage: React.FC = () => {
 
   const handleReset = () => {
     if (window.confirm('Reset all website branding and hero banner settings to Vedic defaults?')) {
+      isDirtyRef.current = false;
       setFormState(siteSettings);
       setLogoFileName('');
       setLogoFileSize('');

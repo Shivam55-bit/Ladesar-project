@@ -248,23 +248,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         fetch('/api/coupons').then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
 
-      if (prodRes?.success && Array.isArray(prodRes.data) && prodRes.data.length > 0) {
-        setProducts(prodRes.data);
+      if (prodRes?.success && Array.isArray(prodRes.data)) {
+        setProducts(prev => JSON.stringify(prev) === JSON.stringify(prodRes.data) ? prev : prodRes.data);
       }
-      if (catRes?.success && Array.isArray(catRes.data) && catRes.data.length > 0) {
-        setCategories(catRes.data);
+      if (catRes?.success && Array.isArray(catRes.data)) {
+        setCategories(prev => JSON.stringify(prev) === JSON.stringify(catRes.data) ? prev : catRes.data);
       }
       if (setRes?.success && setRes.data) {
-        setSiteSettings(setRes.data);
+        setSiteSettings(prev => JSON.stringify(prev) === JSON.stringify(setRes.data) ? prev : setRes.data);
       }
       if (usrRes?.success && Array.isArray(usrRes.data)) {
-        setUsers(usrRes.data);
+        setUsers(prev => JSON.stringify(prev) === JSON.stringify(usrRes.data) ? prev : usrRes.data);
       }
       if (ordRes?.success && Array.isArray(ordRes.data)) {
-        setOrders(ordRes.data);
+        setOrders(prev => JSON.stringify(prev) === JSON.stringify(ordRes.data) ? prev : ordRes.data);
       }
       if (coupRes?.success && Array.isArray(coupRes.data)) {
-        setCoupons(coupRes.data);
+        setCoupons(prev => JSON.stringify(prev) === JSON.stringify(coupRes.data) ? prev : coupRes.data);
       }
     } catch {}
   };
@@ -775,11 +775,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await fetch('/api/site-settings', {
+      const res = await fetch('/api/site-settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...merged, adminUser: activeAdminRole }),
       });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setSiteSettings(json.data);
+          safeSetLocalStorage('lad_site_settings', json.data);
+          broadcastChange('SETTINGS_UPDATED');
+          showToast('✨ Website Logo & Hero Section updated and published live!', 'success');
+          return;
+        }
+      }
     } catch (e) {
       console.warn('Backend site settings sync failed, saved locally', e);
     }
