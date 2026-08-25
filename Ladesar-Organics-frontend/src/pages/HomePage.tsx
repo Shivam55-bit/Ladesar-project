@@ -285,7 +285,7 @@ export const HomePage: React.FC = () => {
                     />
                   </div>
                   
-                  <h3 className="text-xs sm:text-sm font-bold text-[#0F3823] group-hover:text-[#B8860B] transition-colors line-clamp-1">
+                  <h3 className="text-xs sm:text-sm font-bold font-serif-luxury text-[#0F3823] group-hover:text-[#B8860B] transition-colors line-clamp-1">
                     {cat.name}
                   </h3>
                   {cat.hindiName && (

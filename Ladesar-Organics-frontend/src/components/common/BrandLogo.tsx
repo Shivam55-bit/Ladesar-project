@@ -29,7 +29,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   const sizeClasses = {
     sm: { emblem: 'w-6 h-6', customImg: 'h-7 max-w-[120px]', title: 'text-lg tracking-[0.18em]', sub: 'text-[9px]', tagline: 'text-[8px]' },
-    md: { emblem: 'w-9 h-9', customImg: 'h-10 max-w-[160px]', title: 'text-2xl tracking-[0.22em]', sub: 'text-[10px]', tagline: 'text-[9px]' },
+    md: { emblem: 'w-10 h-10', customImg: 'h-20 max-w-[200px]', title: 'text-3xl tracking-[0.22em]', sub: 'text-[11px]', tagline: 'text-[10px]' },
     lg: { emblem: 'w-14 h-14', customImg: 'h-14 max-w-[220px]', title: 'text-4xl tracking-[0.24em]', sub: 'text-xs', tagline: 'text-[11px]' },
     xl: { emblem: 'w-20 h-20', customImg: 'h-20 max-w-[300px]', title: 'text-5xl tracking-[0.28em]', sub: 'text-sm', tagline: 'text-xs' },
   }[size];

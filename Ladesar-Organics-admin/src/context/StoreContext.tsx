@@ -77,6 +77,24 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+const normalizeSiteSettings = (settings: Partial<SiteSettings> | null | undefined): SiteSettings => ({
+  ...INITIAL_SITE_SETTINGS,
+  ...settings,
+  branding: {
+    ...INITIAL_SITE_SETTINGS.branding,
+    ...(settings?.branding || {})
+  },
+  hero: {
+    ...INITIAL_SITE_SETTINGS.hero,
+    ...(settings?.hero || {}),
+    pillars: settings?.hero?.pillars || INITIAL_SITE_SETTINGS.hero.pillars
+  },
+  announcementBar: {
+    ...INITIAL_SITE_SETTINGS.announcementBar,
+    ...(settings?.announcementBar || {})
+  }
+});
+
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Self-cleaning pass: automatically purge oversized legacy Base64 entries from localStorage to free memory
   try {
@@ -164,7 +182,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('lad_site_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SITE_SETTINGS;
+    return normalizeSiteSettings(saved ? JSON.parse(saved) : INITIAL_SITE_SETTINGS);
   });
   const [deliveryPincode, setDeliveryPincode] = useState<string>('122001');
   const [pincodeCity, setPincodeCity] = useState<string>('Gurugram, HR');
@@ -255,7 +273,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCategories(prev => JSON.stringify(prev) === JSON.stringify(catRes.data) ? prev : catRes.data);
       }
       if (setRes?.success && setRes.data) {
-        setSiteSettings(prev => JSON.stringify(prev) === JSON.stringify(setRes.data) ? prev : setRes.data);
+        const normalizedSettings = normalizeSiteSettings(setRes.data);
+        setSiteSettings(prev => JSON.stringify(prev) === JSON.stringify(normalizedSettings) ? prev : normalizedSettings);
       }
       if (usrRes?.success && Array.isArray(usrRes.data)) {
         setUsers(prev => JSON.stringify(prev) === JSON.stringify(usrRes.data) ? prev : usrRes.data);

@@ -337,7 +337,7 @@ app.put('/api/users/:id', async (req, res) => {
     const updatedUser = await CustomerModel.findOneAndUpdate(
       { id: req.params.id },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedUser) {
@@ -490,7 +490,7 @@ app.put('/api/products/:id', async (req, res) => {
     let updatedProduct = await ProductModel.findOneAndUpdate(
       { $or: [{ id: req.params.id }, { slug: req.params.id }] },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!updatedProduct) {
@@ -599,7 +599,7 @@ app.put('/api/categories/:id', async (req, res) => {
     const updated = await CategoryModel.findOneAndUpdate(
       { $or: [{ id: req.params.id }, { slug: req.params.id }] },
       { $set: req.body },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     auditLogs.unshift({
@@ -896,7 +896,7 @@ app.put('/api/coupons/:code', async (req, res) => {
     const updated = await CouponModel.findOneAndUpdate(
       { code: targetCode },
       { $set: { ...req.body, code: targetCode } },
-      { new: true }
+      { returnDocument: 'after' }
     );
     
     if (!updated) {
@@ -1108,7 +1108,7 @@ app.put('/api/site-settings', async (req, res) => {
           announcementBar: updatedAnnouncementBar
         }
       },
-      { new: true, lean: true }
+      { returnDocument: 'after', lean: true }
     );
 
     auditLogs.unshift({
