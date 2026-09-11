@@ -37,7 +37,7 @@ export const HomePage: React.FC = () => {
     primaryBtnLink: 'shop',
     secondaryBtnText: 'Consult AI Ayurvedic Vaidya',
     secondaryBtnLink: 'ai-advisor',
-    featuredProductImage: 'https://images.unsplash.com/photo-1589927986086-3d10fb5555ca?auto=format&fit=crop&w=800&q=80',
+    featuredProductImage: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
     featuredBadge: 'Vedic Masterpiece',
     featuredTitle: 'A2 Bilona Vedic Desi Gir Cow Ghee',
     featuredDescription: 'Prepared through the traditional 5-stage Bilona method from curdled A2 Gir cow milk over slow cow dung fire in brass vessels.',
@@ -173,8 +173,11 @@ export const HomePage: React.FC = () => {
                 <div className="relative bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border-2 border-[#D4AF37]/50 text-gray-900 overflow-hidden">
                   <div className="relative aspect-4/3 rounded-2xl overflow-hidden mb-4 bg-[#FAF7F2]">
                     <img
-                      src={hero.featuredProductImage || featuredGhee.heroImage}
+                      src={hero.featuredProductImage || featuredGhee.heroImage || 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80'}
                       alt={hero.featuredTitle || featuredGhee.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80';
+                      }}
                       className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-3 left-3 bg-[#0F3823] text-[#FAF7F2] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">

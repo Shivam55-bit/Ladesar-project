@@ -1017,7 +1017,7 @@ export const INITIAL_SITE_SETTINGS = {
     secondaryBtnLink: 'ai-advisor',
     
     // Featured Showcase Product Card
-    featuredProductImage: 'https://images.unsplash.com/photo-1589927986086-3d10fb5555ca?auto=format&fit=crop&w=800&q=80',
+    featuredProductImage: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
     featuredBadge: 'Vedic Masterpiece',
     featuredTitle: 'A2 Bilona Vedic Desi Gir Cow Ghee',
     featuredDescription: 'Prepared through the traditional 5-stage Bilona method from curdled A2 Gir cow milk over slow cow dung fire in brass vessels.',

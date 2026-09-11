@@ -33,7 +33,7 @@ import {
 const PRESET_IMAGES = [
   {
     name: 'A2 Vedic Bilona Ghee',
-    url: 'https://images.unsplash.com/photo-1589927986086-3d10fb5555ca?auto=format&fit=crop&w=800&q=80',
+    url: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
     title: 'A2 Bilona Vedic Desi Gir Cow Ghee',
     badge: 'Vedic Masterpiece',
     price: 1099,
