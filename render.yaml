@@ -18,7 +18,6 @@ services:
   - type: web
     name: ladesar-frontend
     env: static
-    plan: free
     rootDir: Ladesar-Organics-frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
@@ -37,7 +36,6 @@ services:
   - type: web
     name: ladesar-admin
     env: static
-    plan: free
     rootDir: Ladesar-Organics-admin
     buildCommand: npm install && npm run build
     staticPublishPath: dist
