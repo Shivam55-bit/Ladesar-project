@@ -99,21 +99,25 @@ export const WebsiteAppearancePage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout
       const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
+        signal: controller.signal
       });
-      if (res.ok) {
+      clearTimeout(timeoutId);
+      const cType = res.headers.get('content-type') || '';
+      if (res.ok && cType.includes('application/json')) {
         const data = await res.json();
-        if (data.success && (data.path || data.url)) {
-          return data.path || data.url;
+        if (data.success && (data.url || data.path)) {
+          return data.url || data.path;
         }
       } else {
-        const errData = await res.json().catch(() => null);
-        console.warn('Backend upload returned error status:', res.status, errData);
+        console.warn('Backend upload returned non-JSON or error status:', res.status);
       }
     } catch (err) {
-      console.warn('Backend upload request failed, falling back to base64:', err);
+      console.warn('Backend upload request failed or timed out, falling back to base64:', err);
     }
     return new Promise((resolve) => {
       const reader = new FileReader();

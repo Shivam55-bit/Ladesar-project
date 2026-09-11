@@ -835,29 +835,37 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       announcementBar: { ...siteSettings.announcementBar, ...(newSettings.announcementBar || {}) }
     };
 
+    // Update in-memory state and localStorage right away for instant feedback
+    setSiteSettings(merged);
+    safeSetLocalStorage('lad_site_settings', merged);
+    broadcastChange('SETTINGS_UPDATED');
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8-second safety timeout
+
       const res = await fetch(`${API_BASE}/api/site-settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...merged, adminUser: activeAdminRole }),
+        signal: controller.signal
       });
-      if (res.ok) {
+      clearTimeout(timeoutId);
+
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
         const json = await res.json();
         if (json.success && json.data) {
-          setSiteSettings(json.data);
-          safeSetLocalStorage('lad_site_settings', json.data);
+          const normalized = normalizeSiteSettings(json.data);
+          setSiteSettings(normalized);
+          safeSetLocalStorage('lad_site_settings', normalized);
           broadcastChange('SETTINGS_UPDATED');
-          showToast('✨ Website Logo & Hero Section updated and published live!', 'success');
-          return;
         }
       }
     } catch (e) {
-      console.warn('Backend site settings sync failed, saved locally', e);
+      console.warn('Backend site settings sync timed out or failed, saved locally', e);
     }
 
-    setSiteSettings(merged);
-    safeSetLocalStorage('lad_site_settings', merged);
-    broadcastChange('SETTINGS_UPDATED');
     showToast('✨ Website Logo & Hero Section updated and published live!', 'success');
   };
 
