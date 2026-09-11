@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE } from '../config';
 
 export type AdminRoleType = 'Super Admin' | 'Inventory Manager' | 'Order Fulfillment' | 'Store Manager';
 
@@ -82,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password?: string, role: AdminRoleType = 'Super Admin'): Promise<{ success: boolean; message?: string }> => {
     try {
       // Try hitting the backend API first
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: password || 'admin123' })

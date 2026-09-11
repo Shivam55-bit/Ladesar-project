@@ -158,7 +158,7 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Thumbnails */}
-          {product.galleryImages.length > 1 && (
+          {(product.galleryImages && product.galleryImages.length > 1) && (
             <div className="flex gap-3 overflow-x-auto pb-2">
               {product.galleryImages.map((img, i) => (
                 <button

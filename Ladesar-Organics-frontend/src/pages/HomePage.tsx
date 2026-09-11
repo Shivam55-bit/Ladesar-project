@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from '../components/common/ProductCard';
-import { CATEGORIES_DATA, MOCK_RECIPES } from '../data/mockData';
+import { CATEGORIES_DATA } from '../data/mockData';
 import { 
   Sparkles, 
   ArrowRight, 
@@ -12,19 +12,19 @@ import {
   Heart, 
   Star, 
   CheckCircle2, 
-  Flame,
-  Check,
-  ChevronRight,
-  Eye,
-  Droplets,
-  Sun,
-  XCircle,
-  Shield,
-  RotateCcw
+  Flame, 
+  Check, 
+  ChevronRight, 
+  Eye, 
+  Droplets, 
+  Sun, 
+  XCircle, 
+  Shield, 
+  RotateCcw 
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { products, categories, siteSettings, setView, addToCart, setIsAiAdvisorOpen, setLabReportProduct, showToast } = useStore();
+  const { products, categories, siteSettings, recipes, setView, addToCart, setIsAiAdvisorOpen, setLabReportProduct, showToast } = useStore();
   const [selectedCategoryTab, setSelectedCategoryTab] = useState<string>('all');
   const [activeRecipeIndex, setActiveRecipeIndex] = useState<number>(0);
 
@@ -465,10 +465,10 @@ export const HomePage: React.FC = () => {
                 <Sparkles className="w-3.5 h-3.5" /> Recipe of the Week
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold font-serif-luxury">
-                {MOCK_RECIPES[0]?.title}
+                {recipes?.[0]?.title || 'Traditional Ayurvedic Rasayana'}
               </h2>
               <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                {MOCK_RECIPES[0]?.description}
+                {recipes?.[0]?.description || 'Holistic Vedic preparation packed with essential micro-nutrients.'}
               </p>
 
               <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md space-y-2">
@@ -476,7 +476,7 @@ export const HomePage: React.FC = () => {
                   🌿 Ayurvedic Healing Benefits:
                 </div>
                 <p className="text-xs text-gray-200">
-                  {MOCK_RECIPES[0]?.ayurvedicBenefits}
+                  {recipes?.[0]?.ayurvedicBenefits || 'Balances tri-doshas and kindle digestive Agni.'}
                 </p>
               </div>
 
@@ -504,8 +504,8 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-5">
               <div className="aspect-4/3 rounded-2xl overflow-hidden shadow-xl border-2 border-white/20">
                 <img
-                  src={MOCK_RECIPES[0]?.image}
-                  alt={MOCK_RECIPES[0]?.title}
+                  src={recipes?.[0]?.image || recipes?.[0]?.heroImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'}
+                  alt={recipes?.[0]?.title || 'Ayurvedic Recipe'}
                   className="w-full h-full object-cover"
                 />
               </div>

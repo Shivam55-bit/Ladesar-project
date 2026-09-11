@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CartItem, ProductVariant, Coupon, Order, CustomerUser, AdminRole, SiteSettings, CategoryItem } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_COUPONS, INITIAL_USER, INITIAL_USERS, INITIAL_ORDERS, INITIAL_SITE_SETTINGS, INITIAL_CATEGORIES } from '../data/mockData';
+import { Product, CartItem, ProductVariant, Coupon, Order, CustomerUser, AdminRole, SiteSettings, CategoryItem, AuditLog } from '../types';
+import { INITIAL_PRODUCTS, INITIAL_COUPONS, INITIAL_USER, INITIAL_USERS, INITIAL_ORDERS, INITIAL_SITE_SETTINGS, INITIAL_CATEGORIES, INITIAL_AUDIT_LOGS } from '../data/mockData';
 import confetti from 'canvas-confetti';
+import { API_BASE } from '../config';
 
 interface Toast {
   id: string;
@@ -19,6 +20,7 @@ interface StoreContextType {
   users: CustomerUser[];
   orders: Order[];
   coupons: Coupon[];
+  auditLogs: AuditLog[];
   appliedCoupon: Coupon | null;
   siteSettings: SiteSettings;
   discountAmount: number;
@@ -179,6 +181,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return saved ? JSON.parse(saved) : INITIAL_COUPONS;
   });
 
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
+    const saved = localStorage.getItem('lad_audit_logs');
+    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
+  });
+
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('lad_site_settings');
@@ -253,37 +260,70 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     safeSetLocalStorage('lad_site_settings', siteSettings);
   }, [siteSettings]);
 
+  useEffect(() => {
+    safeSetLocalStorage('lad_audit_logs', auditLogs);
+  }, [auditLogs]);
 
-  // Live Real-Time Synchronizer across Backend API and Frontend
+
+  // Live Real-Time Synchronizer across Backend API and Frontend (API-First with Mock Data Fallback)
   const refreshAllData = async () => {
     try {
-      const [prodRes, catRes, setRes, usrRes, ordRes, coupRes] = await Promise.all([
-        fetch('/api/products').then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch('/api/categories').then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch('/api/site-settings').then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch('/api/users').then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch('/api/orders').then(r => r.ok ? r.json() : null).catch(() => null),
-        fetch('/api/coupons').then(r => r.ok ? r.json() : null).catch(() => null),
+      const [prodRes, catRes, setRes, usrRes, ordRes, coupRes, auditRes] = await Promise.all([
+        fetch(`${API_BASE}/api/products`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/categories`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/site-settings`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/users`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/orders`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/coupons`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`${API_BASE}/api/audit-logs`).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
 
-      if (prodRes?.success && Array.isArray(prodRes.data)) {
+      // 1. Products: Use API data if available, else fallback to mock
+      if (prodRes?.success && Array.isArray(prodRes.data) && prodRes.data.length > 0) {
         setProducts(prev => JSON.stringify(prev) === JSON.stringify(prodRes.data) ? prev : prodRes.data);
+      } else if (prodRes?.success && Array.isArray(prodRes.data) && prodRes.data.length === 0) {
+        setProducts(INITIAL_PRODUCTS);
       }
-      if (catRes?.success && Array.isArray(catRes.data)) {
+
+      // 2. Categories: Use API data if available, else fallback to mock
+      if (catRes?.success && Array.isArray(catRes.data) && catRes.data.length > 0) {
         setCategories(prev => JSON.stringify(prev) === JSON.stringify(catRes.data) ? prev : catRes.data);
+      } else if (catRes?.success && Array.isArray(catRes.data) && catRes.data.length === 0) {
+        setCategories(INITIAL_CATEGORIES);
       }
-      if (setRes?.success && setRes.data) {
+
+      // 3. Site Settings: Use API data if available, else fallback to mock
+      if (setRes?.success && setRes.data && Object.keys(setRes.data).length > 0) {
         const normalizedSettings = normalizeSiteSettings(setRes.data);
         setSiteSettings(prev => JSON.stringify(prev) === JSON.stringify(normalizedSettings) ? prev : normalizedSettings);
       }
-      if (usrRes?.success && Array.isArray(usrRes.data)) {
+
+      // 4. Users: Use API data if available, else fallback to mock
+      if (usrRes?.success && Array.isArray(usrRes.data) && usrRes.data.length > 0) {
         setUsers(prev => JSON.stringify(prev) === JSON.stringify(usrRes.data) ? prev : usrRes.data);
+      } else if (usrRes?.success && Array.isArray(usrRes.data) && usrRes.data.length === 0) {
+        setUsers(INITIAL_USERS);
       }
-      if (ordRes?.success && Array.isArray(ordRes.data)) {
+
+      // 5. Orders: Use API data if available, else fallback to mock
+      if (ordRes?.success && Array.isArray(ordRes.data) && ordRes.data.length > 0) {
         setOrders(prev => JSON.stringify(prev) === JSON.stringify(ordRes.data) ? prev : ordRes.data);
+      } else if (ordRes?.success && Array.isArray(ordRes.data) && ordRes.data.length === 0) {
+        setOrders(INITIAL_ORDERS);
       }
-      if (coupRes?.success && Array.isArray(coupRes.data)) {
+
+      // 6. Coupons: Use API data if available, else fallback to mock
+      if (coupRes?.success && Array.isArray(coupRes.data) && coupRes.data.length > 0) {
         setCoupons(prev => JSON.stringify(prev) === JSON.stringify(coupRes.data) ? prev : coupRes.data);
+      } else if (coupRes?.success && Array.isArray(coupRes.data) && coupRes.data.length === 0) {
+        setCoupons(INITIAL_COUPONS);
+      }
+
+      // 7. Audit Logs: Use API data if available, else fallback to mock
+      if (auditRes?.success && Array.isArray(auditRes.data) && auditRes.data.length > 0) {
+        setAuditLogs(prev => JSON.stringify(prev) === JSON.stringify(auditRes.data) ? prev : auditRes.data);
+      } else if (auditRes?.success && Array.isArray(auditRes.data) && auditRes.data.length === 0) {
+        setAuditLogs(INITIAL_AUDIT_LOGS);
       }
     } catch {}
   };
@@ -416,7 +456,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const applyCoupon = async (code: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const res = await fetch('/api/coupons/validate', {
+      const res = await fetch(`${API_BASE}/api/coupons/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, orderAmount: cartSubtotal }),
@@ -509,7 +549,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      const res = await fetch('/api/orders', {
+      const res = await fetch(`${API_BASE}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
@@ -602,7 +642,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     try {
-      await fetch(`/api/orders/${orderId}/status`, {
+      await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status, adminUser: activeAdminRole }),
@@ -646,8 +686,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       categoryName: productData.categoryName || 'Organic Spices',
       shortDescription: productData.shortDescription || '',
       description: productData.description || '',
-      heroImage: productData.heroImage || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
-      galleryImages: [productData.heroImage || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'],
+      heroImage: productData.heroImage || (productData.galleryImages && productData.galleryImages[0]) || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+      galleryImages: (productData.galleryImages && productData.galleryImages.length > 0)
+        ? productData.galleryImages
+        : [productData.heroImage || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'],
       variants: productData.variants && productData.variants.length > 0 ? productData.variants : [
         { id: `var-${Date.now()}`, size: '500 g', price: 299, mrp: 350, stock: 50, sku: `LAD-${Date.now().toString().slice(-4)}` }
       ],
@@ -667,7 +709,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await fetch('/api/products', {
+      await fetch(`${API_BASE}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newProd, adminUser: activeAdminRole }),
@@ -685,7 +727,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateProduct = async (prod: Product) => {
     try {
-      await fetch(`/api/products/${prod.id}`, {
+      await fetch(`${API_BASE}/api/products/${prod.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...prod, adminUser: activeAdminRole }),
@@ -703,7 +745,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteProduct = async (productId: string) => {
     try {
-      await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/products/${productId}`, { method: 'DELETE' });
     } catch {}
 
     setProducts(prev => {
@@ -732,7 +774,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await fetch('/api/categories', {
+      await fetch(`${API_BASE}/api/categories`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCat),
@@ -750,7 +792,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateCategory = async (cat: CategoryItem) => {
     try {
-      await fetch(`/api/categories/${cat.id}`, {
+      await fetch(`${API_BASE}/api/categories/${cat.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cat),
@@ -768,7 +810,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteCategory = async (categoryId: string) => {
     try {
-      await fetch(`/api/categories/${categoryId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE}/api/categories/${categoryId}`, { method: 'DELETE' });
     } catch {}
 
     setCategories(prev => {
@@ -794,7 +836,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      const res = await fetch('/api/site-settings', {
+      const res = await fetch(`${API_BASE}/api/site-settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...merged, adminUser: activeAdminRole }),
@@ -840,7 +882,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await fetch('/api/users', {
+      await fetch(`${API_BASE}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...newUser, adminUser: activeAdminRole }),
@@ -857,7 +899,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateUser = async (userData: CustomerUser) => {
     try {
-      await fetch(`/api/users/${userData.id}`, {
+      await fetch(`${API_BASE}/api/users/${userData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...userData, adminUser: activeAdminRole }),
@@ -874,7 +916,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteUser = async (userId: string) => {
     try {
-      await fetch(`/api/users/${userId}`, {
+      await fetch(`${API_BASE}/api/users/${userId}`, {
         method: 'DELETE',
       });
     } catch (e) {
@@ -908,7 +950,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      await fetch('/api/coupons', {
+      await fetch(`${API_BASE}/api/coupons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCoupon),
@@ -928,7 +970,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const toggleCouponStatus = async (code: string) => {
     try {
-      await fetch(`/api/coupons/${code}/status`, {
+      await fetch(`${API_BASE}/api/coupons/${code}/status`, {
         method: 'PUT',
       });
     } catch (e) {
@@ -946,7 +988,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteCoupon = async (code: string) => {
     try {
-      await fetch(`/api/coupons/${code}`, {
+      await fetch(`${API_BASE}/api/coupons/${code}`, {
         method: 'DELETE',
       });
     } catch (e) {
@@ -974,6 +1016,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         users,
         orders,
         coupons,
+        auditLogs,
         appliedCoupon,
         siteSettings,
         discountAmount,

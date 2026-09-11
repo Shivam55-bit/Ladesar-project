@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { API_BASE } from '../../config';
 import { 
   X, 
   Sparkles, 
@@ -41,7 +42,7 @@ export const AiWellnessAdvisor: React.FC = () => {
     setAiResponse(null);
 
     try {
-      const res = await fetch('/api/ai/advisor', {
+      const res = await fetch(`${API_BASE}/api/ai/advisor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

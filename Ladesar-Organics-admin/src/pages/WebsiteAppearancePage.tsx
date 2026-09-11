@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { SiteSettings } from '../types';
+import { API_BASE } from '../config';
 import { 
   Palette, 
   Sparkles, 
@@ -98,7 +99,7 @@ export const WebsiteAppearancePage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload', {
+      const res = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
       });

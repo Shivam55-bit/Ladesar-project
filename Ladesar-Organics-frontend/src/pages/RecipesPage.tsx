@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 
 export const RecipesPage: React.FC = () => {
-  const { products, addToCart, showToast } = useStore();
-  const [selectedRecipe, setSelectedRecipe] = useState(MOCK_RECIPES[0]);
+  const { products, recipes, addToCart, showToast } = useStore();
+  const recipeList = recipes && recipes.length > 0 ? recipes : MOCK_RECIPES;
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string>(recipeList[0]?.id || 'rec-01');
+  const selectedRecipe = recipeList.find(r => r.id === selectedRecipeId) || recipeList[0] || MOCK_RECIPES[0];
 
   const handleAddAllIngredients = (recipe: typeof MOCK_RECIPES[0]) => {
     recipe.ingredients.forEach(ing => {
@@ -127,11 +129,11 @@ export const RecipesPage: React.FC = () => {
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {MOCK_RECIPES.map((recipe) => (
+          {recipeList.map((recipe) => (
             <div
               key={recipe.id}
               onClick={() => {
-                setSelectedRecipe(recipe);
+                setSelectedRecipeId(recipe.id);
                 window.scrollTo({ top: 180, behavior: 'smooth' });
               }}
               className={`bg-white rounded-2xl p-4 border transition-all cursor-pointer shadow-xs hover:shadow-lg flex flex-col justify-between ${

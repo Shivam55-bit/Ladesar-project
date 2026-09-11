@@ -99,6 +99,27 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   });
 });
 
+app.post('/api/upload-multiple', upload.array('files', 15), (req, res) => {
+  const files = (req.files as Express.Multer.File[]) || [];
+  if (!files || files.length === 0) {
+    return res.status(400).json({ success: false, message: 'No files uploaded.' });
+  }
+
+  const baseUrl = `http://127.0.0.1:${PORT}`;
+  const uploadedFiles = files.map(f => ({
+    url: `${baseUrl}/uploads/hero/${f.filename}`,
+    path: `/uploads/hero/${f.filename}`,
+    filename: f.filename
+  }));
+
+  return res.status(200).json({
+    success: true,
+    message: `${files.length} file(s) uploaded successfully`,
+    files: uploadedFiles,
+    paths: uploadedFiles.map(f => f.path)
+  });
+});
+
 // -------------------------------------------------------------
 // AUTHENTICATION & USERS API
 // -------------------------------------------------------------
@@ -463,7 +484,9 @@ app.post('/api/products', async (req, res) => {
       id: req.body.id || `prod-${Date.now()}`,
       rating: req.body.rating || 5.0,
       reviewsCount: req.body.reviewsCount || 1,
-      galleryImages: req.body.galleryImages || [req.body.heroImage],
+      galleryImages: (req.body.galleryImages && Array.isArray(req.body.galleryImages) && req.body.galleryImages.length > 0)
+        ? req.body.galleryImages
+        : [req.body.heroImage || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'],
       reviews: [],
       faqs: []
     };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useStore } from '../context/StoreContext';
 import { INITIAL_AUDIT_LOGS } from '../data/mockData';
 import { AuditLog } from '../types';
 import { 
@@ -35,7 +36,8 @@ const ROLES_PERMISSIONS_MATRIX = [
 ];
 
 export const AuditLogsPage: React.FC = () => {
-  const [logs, setLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
+  const { auditLogs } = useStore();
+  const logs = auditLogs && auditLogs.length > 0 ? auditLogs : INITIAL_AUDIT_LOGS;
   const [search, setSearch] = useState('');
 
   const filteredLogs = logs.filter(l => 

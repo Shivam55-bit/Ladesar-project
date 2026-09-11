@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { CategoryItem } from '../types';
+import { API_BASE } from '../config';
 import { 
   Tag, 
   ShoppingBag, 
@@ -80,7 +81,7 @@ export const CategoriesPage: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
         body: formData,
       });

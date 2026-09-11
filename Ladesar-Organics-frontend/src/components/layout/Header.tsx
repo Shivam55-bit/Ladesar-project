@@ -87,57 +87,9 @@ export const Header: React.FC = () => {
             </span>
           </div>
 
-          <div className="mx-auto md:mx-0 flex items-center gap-2 text-center text-xs">
+          <div className="mx-auto flex items-center gap-2 text-center text-xs">
             <span className="text-[#D4AF37] font-semibold">Festive Harvest Sale:</span>
             <span>Use Code <strong className="text-[#D4AF37] tracking-wider font-bold bg-white/10 px-1.5 py-0.5 rounded backdrop-blur-xs">FIRST15</strong> for 15% OFF</span>
-          </div>
-
-          <div className="flex items-center gap-3 text-[11px]">
-            {user && user.email ? (
-              <div className="flex items-center gap-2">
-                <span className="text-[#D4AF37] font-semibold hidden sm:inline">
-                  Namaste, {user.name.split(' ')[0]}
-                </span>
-                <span className="hidden sm:inline opacity-40">•</span>
-                <button
-                  onClick={() => setView('account')}
-                  className="hover:text-[#D4AF37] transition-colors cursor-pointer"
-                >
-                  My Account
-                </button>
-                <span className="opacity-40">•</span>
-                <button
-                  onClick={logout}
-                  className="text-rose-300 hover:text-rose-200 font-bold flex items-center gap-1 cursor-pointer"
-                >
-                  <LogOut className="w-3 h-3" /> Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => { setAuthMode('login'); setIsAuthModalOpen(true); }}
-                  className="hover:text-[#D4AF37] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <User className="w-3 h-3 text-[#D4AF37]" /> Sign In
-                </button>
-                <span className="opacity-40">•</span>
-                <button
-                  onClick={() => { setAuthMode('register'); setIsAuthModalOpen(true); }}
-                  className="text-[#D4AF37] font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Gift className="w-3 h-3" /> Register (Get ₹100)
-                </button>
-              </div>
-            )}
-            
-            <span className="hidden lg:inline opacity-40">•</span>
-            <button 
-              onClick={() => setView('admin')}
-              className="hidden lg:flex text-[#D4AF37] font-semibold hover:underline items-center gap-1 bg-[#164E31]/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] border border-white/10"
-            >
-              <Shield className="w-3 h-3" /> Admin ERP
-            </button>
           </div>
         </div>
       </div>
@@ -168,7 +120,7 @@ export const Header: React.FC = () => {
 
       {/* 3. MAIN NAVIGATION BAR */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+        <div className="flex items-center justify-between min-h-[5.25rem] py-2 gap-4">
           
           {/* Mobile menu trigger */}
           <button

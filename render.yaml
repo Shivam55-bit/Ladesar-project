@@ -1,0 +1,53 @@
+services:
+  # 1. Backend API Web Service
+  - type: web
+    name: ladesar-backend
+    env: node
+    plan: free
+    rootDir: Ladesar-Organics-backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # 2. Customer Frontend Website (Static Site)
+  - type: web
+    name: ladesar-frontend
+    env: static
+    plan: free
+    rootDir: Ladesar-Organics-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ladesar-backend
+          property: host
+
+  # 3. Enterprise Admin ERP Dashboard (Static Site)
+  - type: web
+    name: ladesar-admin
+    env: static
+    plan: free
+    rootDir: Ladesar-Organics-admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: ladesar-backend
+          property: host
