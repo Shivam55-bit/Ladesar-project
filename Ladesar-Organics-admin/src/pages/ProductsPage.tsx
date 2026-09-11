@@ -96,11 +96,12 @@ export const ProductsPage: React.FC = () => {
         method: 'POST',
         body: formData,
       });
-      if (res.ok) {
+      const cType = res.headers.get('content-type') || '';
+      if (res.ok && cType.includes('application/json')) {
         const data = await res.json();
         if (data.success && Array.isArray(data.files)) {
           data.files.forEach((f: any) => {
-            if (f.path || f.url) uploadedUrls.push(f.path || f.url);
+            if (f.url || f.path) uploadedUrls.push(f.url || f.path);
           });
         }
       }
@@ -120,10 +121,11 @@ export const ProductsPage: React.FC = () => {
             method: 'POST',
             body: singleForm,
           });
-          if (sRes.ok) {
+          const scType = sRes.headers.get('content-type') || '';
+          if (sRes.ok && scType.includes('application/json')) {
             const sData = await sRes.json();
-            if (sData.success && (sData.path || sData.url)) {
-              uploadedUrls.push(sData.path || sData.url);
+            if (sData.success && (sData.url || sData.path)) {
+              uploadedUrls.push(sData.url || sData.path);
               singleUploaded = true;
             }
           }

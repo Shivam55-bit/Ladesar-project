@@ -88,7 +88,9 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     return res.status(400).json({ success: false, message: 'No file uploaded.' });
   }
 
-  const baseUrl = `http://127.0.0.1:${PORT}`;
+  const host = req.get('host') || `127.0.0.1:${PORT}`;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const baseUrl = `${protocol}://${host}`;
   const fileUrl = `${baseUrl}/uploads/hero/${req.file.filename}`;
 
   return res.status(200).json({
@@ -105,7 +107,9 @@ app.post('/api/upload-multiple', upload.array('files', 15), (req, res) => {
     return res.status(400).json({ success: false, message: 'No files uploaded.' });
   }
 
-  const baseUrl = `http://127.0.0.1:${PORT}`;
+  const host = req.get('host') || `127.0.0.1:${PORT}`;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const baseUrl = `${protocol}://${host}`;
   const uploadedFiles = files.map(f => ({
     url: `${baseUrl}/uploads/hero/${f.filename}`,
     path: `/uploads/hero/${f.filename}`,

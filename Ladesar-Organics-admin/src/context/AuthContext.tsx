@@ -89,15 +89,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password: password || 'admin123' })
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const json = await res.json();
+        const userData = json.data || json;
         const loggedUser: AdminUser = {
-          id: data._id || `usr-${Date.now()}`,
-          name: data.name || email.split('@')[0],
-          email: data.email || email,
-          role: (data.role?.name as AdminRoleType) || role,
-          token: data.token,
-          avatar: DEFAULT_USERS[role]?.avatar
+          id: userData.id || userData._id || `usr-${Date.now()}`,
+          name: userData.name || email.split('@')[0],
+          email: userData.email || email,
+          role: (userData.role as AdminRoleType) || role,
+          token: json.token || userData.token,
+          avatar: userData.avatarUrl || userData.avatar || DEFAULT_USERS[role]?.avatar
         };
         setUser(loggedUser);
         return { success: true };

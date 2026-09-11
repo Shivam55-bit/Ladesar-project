@@ -27,10 +27,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: ladesar-backend
-          property: host
+        value: https://ladesar-backend.onrender.com
 
   # 3. Enterprise Admin ERP Dashboard (Static Site)
   - type: web
@@ -45,7 +42,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: ladesar-backend
-          property: host
+        value: https://ladesar-backend.onrender.com
