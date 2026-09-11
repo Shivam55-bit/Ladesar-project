@@ -44,3 +44,23 @@ npm run dev:backend   # Start backend
 npm run dev:frontend  # Start frontend
 npm run dev:admin     # Start admin
 ```
+
+---
+
+## 🌐 Deploy to Render (Live Production)
+
+This repository includes a `render.yaml` Blueprint file for automatic 1-click deployment on Render:
+
+1. Push your code to GitHub:
+   ```bash
+   git push origin main
+   ```
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click **New +** -> Select **Blueprint**
+4. Connect the repository `Shivam55-bit/Ladesar-project`
+5. Render will automatically detect `render.yaml` and set up:
+   - `ladesar-backend` (Node Web Service)
+   - `ladesar-frontend` (Static Site)
+   - `ladesar-admin` (Static Site)
+6. Click **Apply** to deploy all services!
+
