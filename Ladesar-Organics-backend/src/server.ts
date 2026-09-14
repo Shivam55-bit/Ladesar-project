@@ -82,6 +82,8 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(cookieParser());
 app.use('/uploads/hero', express.static(UPLOADS_DIR));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use('/images/products', express.static(path.join(process.cwd(), 'uploads', 'products')));
+app.use('/images/categories', express.static(path.join(process.cwd(), 'uploads', 'categories')));
 
 app.post('/api/upload', upload.single('file'), (req, res) => {
   if (!req.file) {

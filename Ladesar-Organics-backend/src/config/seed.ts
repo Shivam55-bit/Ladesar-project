@@ -83,12 +83,26 @@ export const seedDatabase = async () => {
     if (productCount === 0) {
       await ProductModel.insertMany(INITIAL_PRODUCTS);
       console.log('✅ Seeded Products');
+    } else {
+      for (const prod of INITIAL_PRODUCTS) {
+        await ProductModel.updateOne(
+          { id: prod.id },
+          { $set: { heroImage: prod.heroImage, galleryImages: prod.galleryImages } }
+        );
+      }
     }
 
     const categoryCount = await CategoryModel.countDocuments();
     if (categoryCount === 0) {
       await CategoryModel.insertMany(CATEGORIES_DATA);
       console.log('✅ Seeded Categories');
+    } else {
+      for (const cat of CATEGORIES_DATA) {
+        await CategoryModel.updateOne(
+          { id: cat.id },
+          { $set: { image: cat.image } }
+        );
+      }
     }
 
     const customerCount = await CustomerModel.countDocuments();
@@ -113,6 +127,11 @@ export const seedDatabase = async () => {
     if (siteSettingCount === 0) {
       await SiteSettingModel.create(INITIAL_SITE_SETTINGS);
       console.log('✅ Seeded Site Settings');
+    } else {
+      await SiteSettingModel.updateMany(
+        {},
+        { $set: { 'hero.featuredProductImage': INITIAL_SITE_SETTINGS.hero.featuredProductImage } }
+      );
     }
 
   } catch (error) {

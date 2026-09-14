@@ -59,10 +59,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Top Badges & Actions */}
       <div className="relative aspect-square w-full bg-[#FAF7F2]/60 overflow-hidden">
         <img
-          src={product.heroImage || 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80'}
+          src={product.heroImage || '/images/products/Gir-Cow-Ghee-product.png'}
           alt={product.name}
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80';
+            (e.target as HTMLImageElement).src = '/images/products/Gir-Cow-Ghee-product.png';
           }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"

@@ -8,7 +8,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'वैदिक देसी घी',
     count: 4,
     itemsCount: 4,
-    image: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/dasi-ghee-category.png',
     description: 'Traditional Bilona churned curd ghee from grass-fed Gir cows',
     badge: 'Vedic Bilona',
     isActive: true,
@@ -20,7 +20,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'कच्ची घानी तेल',
     count: 6,
     itemsCount: 6,
-    image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/cold-pressed-oil-category.png',
     description: 'Wood-pressed kachi ghani unrefined pure edible oils',
     badge: 'Wood Ghani',
     isActive: true,
@@ -32,7 +32,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'शुद्ध मसाले',
     count: 12,
     itemsCount: 12,
-    image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/ground-spices-category.png',
     description: 'Slow ground at low temperature to retain essential volatile oils',
     badge: '100% Pure',
     isActive: true,
@@ -44,7 +44,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'पारंपरिक अचार',
     count: 5,
     itemsCount: 5,
-    image: 'https://images.unsplash.com/photo-1628294895950-9805252327bc?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/pickels-category.png',
     description: 'Sun-matured in cold pressed mustard oil with no vinegar or chemicals',
     badge: 'Sun-Cured',
     isActive: true,
@@ -56,7 +56,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'शुद्ध शहद',
     count: 3,
     itemsCount: 3,
-    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/Honey-category.png',
     description: 'Unfiltered, unpasteurized natural multifloral and single-flora honey',
     badge: 'Raw & Wild',
     isActive: true,
@@ -68,7 +68,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'दालें और आटा',
     count: 8,
     itemsCount: 8,
-    image: 'https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/pules-category.png',
     description: 'Unpolished traditional heirloom grains and stone-milled flours',
     badge: 'Unpolished',
     isActive: true,
@@ -80,7 +80,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'मेवे और बीज',
     count: 7,
     itemsCount: 7,
-    image: 'https://images.unsplash.com/photo-1508061253366-f7da158b6d46?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/dry-fruit-category.png',
     description: 'Hand-picked Kashmiri walnuts, Mamra almonds and raw super seeds',
     badge: 'Grade A1',
     isActive: true,
@@ -92,7 +92,7 @@ export const CATEGORIES_DATA: CategoryItem[] = [
     hindiName: 'आयुर्वेदिक औषधियां',
     count: 6,
     itemsCount: 6,
-    image: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=600&q=80',
+    image: '/images/categories/Ayurvedic-wellness-category.png',
     description: 'Certified single-origin Ashwagandha, Triphala and pure Tulsi drops',
     badge: 'GMP Certified',
     isActive: true,
@@ -111,9 +111,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'A2 Vedic Desi Ghee',
     shortDescription: 'Hand-churned from curd of free-grazing Indian Gir cows using the ancient Vedic Bilona method.',
     description: 'Ladesar Organics A2 Desi Cow Ghee is prepared using the traditional 5-step Vedic Bilona method. Free-grazing Gir cows feed on natural organic pastures. Fresh milk is boiled in clay pots, naturally cultured into curd, and hand-churned with bi-directional wooden churners (Bilona). The extracted butter (Makkhan) is then slow-simmered over low firewood flames in copper vessels until golden, fragrant, and grainy. Rich in A2 beta-casein, butyric acid, and essential fat-soluble vitamins (A, D, E, K).',
-    heroImage: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Gir-Cow-Ghee-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
+      '/images/products/Gir-Cow-Ghee-product.png',
       'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1576402187878-974f70c890a5?auto=format&fit=crop&w=800&q=80'
     ],
@@ -196,9 +196,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Cold-Pressed Oils',
     shortDescription: 'Extracted at ambient temperature using traditional wooden Kohlu presses to retain pungent aroma and natural antioxidants.',
     description: 'Our Kachi Ghani Mustard Oil is pressed from selectively harvested, pesticide-free black and yellow organic mustard seeds. Extracted slowly at low temperature (under 40°C) in wooden Kolhus without any chemical refinement, argemone oil, or artificial pungent additives. Delivers the authentic spicy pungency (allyl isothiocyanate) and deep golden clarity prized in North and East Indian heritage cuisine.',
-    heroImage: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Mustard-Oil-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+      '/images/products/Mustard-Oil-product.png',
       'https://images.unsplash.com/photo-1620706857370-e1b9770e8bb1?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
@@ -256,9 +256,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Stone-Ground Spices',
     shortDescription: 'Slow stone-ground from fragrant green coriander seeds with high natural linalool oil content.',
     description: 'Ladesar Organics Dhaniya Powder is harvested from organic farms in Ramganj Mandi, renowned for the sweetest and most fragrant coriander seeds. Ground at low RPM on natural emery stone mills to avoid heat degradation, keeping all essential volatile oils intact. Bright, citrusy, and earthy fragrance that elevates curries, dals, and marinades.',
-    heroImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Organic-Dhaniya-Powder-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+      '/images/products/Organic-Dhaniya-Powder-product.png',
       'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
@@ -300,9 +300,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Stone-Ground Spices',
     shortDescription: 'Grown in the pristine Jaintia Hills with 7.5%+ natural Curcumin content for potent immunity and healing.',
     description: 'Sourced directly from native farmers in Meghalaya, Lakadong Turmeric is globally celebrated as the world’s finest turmeric. While ordinary market turmeric contains only 2–3% curcumin, our Lakadong batch is lab-certified at over 7.8% active Curcumin. Deep golden-orange hue, intense earthy fragrance, and medicinal grade antioxidant power.',
-    heroImage: 'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Turmeric-Powder-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1615485500704-8e990f9900f7?auto=format&fit=crop&w=800&q=80',
+      '/images/products/Turmeric-Powder-product.png',
       'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'
     ],
     variants: [
@@ -343,9 +343,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Stone-Ground Spices',
     shortDescription: 'Masterful blend of 17 sun-dried whole spices including Tellicherry pepper, green cardamom, star anise, and mace.',
     description: 'An ancestral royal recipe handed down through generations. Crafted using only highest grade whole spices: green cardamom, black cardamom, cloves, cinnamon, mace (Javitri), nutmeg (Jaiphal), star anise, bay leaf, coriander, cumin, caraway, fennel, ginger, stone flower (Dagad phool), and Tellicherry black pepper. Hand-roasted in small batches to awaken aromatic ketones.',
-    heroImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Garam-Masala-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Garam-Masala-product.png'
     ],
     variants: [
       { id: 'sp-gm-1', size: '100 g Glass Jar', price: 185, mrp: 220, stock: 65, sku: 'LAD-SP-GM-100' },
@@ -376,9 +376,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Artisanal Pickles & Chutneys',
     shortDescription: 'Made with raw Ramkela mangoes, hand-ground spices, and cold-pressed mustard oil, matured in ceramic Barnis under the Rajasthan sun.',
     description: 'Authentic grandma style mango pickle prepared using non-fibrous tangy Ramkela raw mangoes. Tossed with stone-ground fenugreek seeds, fennel, nigella (Kalonji), turmeric, red chilli, and submerged in pure cold-pressed Kachi Ghani mustard oil. Matured under natural sun heat for 21 days in traditional glazed earthenware jars (Martaban). 100% free of synthetic acetic acid/vinegar or sodium benzoate.',
-    heroImage: 'https://images.unsplash.com/photo-1628294895950-9805252327bc?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Mango-Pickle-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1628294895950-9805252327bc?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Mango-Pickle-product.png'
     ],
     variants: [
       { id: 'pck-m-1', size: '400 g Glass Barni', price: 299, mrp: 360, stock: 55, sku: 'LAD-PCK-MNG-400' },
@@ -417,9 +417,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Natural Foods',
     shortDescription: 'Freshly ground native Pahadi ginger and garlic with a drop of cold-pressed oil and rock salt. No water or preservatives added.',
     description: 'Unlike commercial watery pastes loaded with acidity regulators and starches, Ladesar Organics Ginger Garlic Paste is prepared by crushing fresh pungent ginger and desi garlic on granite stone grinders. Blended with pure mustard oil and Himalayan pink salt as natural preservative barriers. Intense aroma and restaurant-quality flavor.',
-    heroImage: 'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Garlic-Paste-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Garlic-Paste-product.png'
     ],
     variants: [
       { id: 'pst-1', size: '300 g Glass Jar', price: 165, mrp: 195, stock: 70, sku: 'LAD-PST-GG-300' },
@@ -449,9 +449,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Raw Forest Honey',
     shortDescription: 'Unfiltered, unpasteurized honey sustainably harvested from wild Apis Dorsata bees in the Himalayan biosphere.',
     description: 'Collected by indigenous tribal beekeepers from pristine wild flower valleys in Uttarakhand. This honey is never heated, micro-filtered, or adulterated with sugar/C3/C4 syrups. Contains live bee pollen, propolis, royal jelly traces, and active enzymes that promote immunity and longevity.',
-    heroImage: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Forest-Honey-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Forest-Honey-product.png'
     ],
     variants: [
       { id: 'hny-1', size: '500 g Glass Jar', price: 549, mrp: 650, stock: 50, sku: 'LAD-HNY-500' },
@@ -490,9 +490,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Ayurvedic Wellness',
     shortDescription: 'Certified organic Nagori Ashwagandha root powder to reduce stress, improve sleep, and boost vitality.',
     description: 'Sourced from the arid organic soils of Nagaur, renowned for the most potent Ashwagandha roots. Rich in Withanolides and Withaferin A. Cultivated using regenerative organic farming without chemical fertilizers.',
-    heroImage: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Ashwagandha-Root-Churna-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Ashwagandha-Root-Churna-product.png'
     ],
     variants: [
       { id: 'ash-1', size: '200 g Jar', price: 280, mrp: 340, stock: 60, sku: 'LAD-AYU-ASH-200' },
@@ -527,9 +527,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     categoryName: 'Organic Pulses & Flour',
     shortDescription: 'Golden grain Sharbati wheat grown in the black soils of Sehore, stone-ground with 100% bran and germ intact for ultra-soft rotis.',
     description: 'Sehore Sharbati wheat is globally celebrated as the king of wheat. Our whole wheat flour is cold stone ground at low temperatures so the delicate nutrients, dietary fiber, and wheatgerm oils are preserved. Yields naturally sweet, super soft rotis that stay fresh all day.',
-    heroImage: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80',
+    heroImage: '/images/products/Wheat-Flour-product.png',
     galleryImages: [
-      'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=800&q=80'
+      '/images/products/Wheat-Flour-product.png'
     ],
     variants: [
       { id: 'fl-1', size: '5 Kg Eco Fabric Bag', price: 380, mrp: 440, stock: 90, sku: 'LAD-FL-SHAR-5K' },
@@ -666,7 +666,7 @@ export const INITIAL_ORDERS: Order[] = [
       {
         productId: 'ghee-01',
         productName: 'A2 Bilona Vedic Desi Gir Cow Ghee',
-        productImage: 'https://images.unsplash.com/photo-1589927986086-3d10fb5555ca?auto=format&fit=crop&w=200&q=80',
+        productImage: '/images/products/Gir-Cow-Ghee-product.png',
         variantSize: '1000 ml Glass Jar',
         unitPrice: 2099,
         quantity: 1,
@@ -675,7 +675,7 @@ export const INITIAL_ORDERS: Order[] = [
       {
         productId: 'spice-02',
         productName: 'Lakadong High-Curcumin Organic Turmeric Powder',
-        productImage: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=200&q=80',
+        productImage: '/images/products/Turmeric-Powder-product.png',
         variantSize: '250 g Eco Pouch',
         unitPrice: 220,
         quantity: 2,
@@ -1017,7 +1017,7 @@ export const INITIAL_SITE_SETTINGS = {
     secondaryBtnLink: 'ai-advisor',
     
     // Featured Showcase Product Card
-    featuredProductImage: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
+    featuredProductImage: '/images/products/Gir-Cow-Ghee-product.png',
     featuredBadge: 'Vedic Masterpiece',
     featuredTitle: 'A2 Bilona Vedic Desi Gir Cow Ghee',
     featuredDescription: 'Prepared through the traditional 5-stage Bilona method from curdled A2 Gir cow milk over slow cow dung fire in brass vessels.',

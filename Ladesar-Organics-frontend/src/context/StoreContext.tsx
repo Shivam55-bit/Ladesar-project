@@ -96,8 +96,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const parsed: Product[] = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.some(p => 
+          p.heroImage?.includes('images.unsplash.com') ||
           p.heroImage?.includes('1589927986086-3d10fb5555ca') || 
           p.heroImage?.includes('1587049352846-4a222e784d38') ||
+          p.heroImage?.includes('/uploads/hero/') ||
           (p.id === 'spice-02' && p.heroImage?.includes('1615485290382-441e4d049cb5'))
         )) {
           return INITIAL_PRODUCTS;
@@ -116,7 +118,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (Array.isArray(parsed) && parsed.some(c => 
           c.image?.includes('1589927986086-3d10fb5555ca') || 
           c.image?.includes('1587049352846-4a222e784d38') || 
-          c.image?.includes('1608797178974-15b35a64a66a')
+          c.image?.includes('1608797178974-15b35a64a66a') ||
+          c.image?.includes('images.unsplash.com') ||
+          c.image?.includes('/uploads/')
         )) {
           return INITIAL_CATEGORIES;
         }
@@ -186,7 +190,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('lad_site_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SITE_SETTINGS;
+    if (saved) {
+      try {
+        const parsed: SiteSettings = JSON.parse(saved);
+        if (parsed?.hero?.featuredProductImage?.includes('unsplash.com')) {
+          parsed.hero.featuredProductImage = '/images/products/Gir-Cow-Ghee-product.png';
+        }
+        return parsed;
+      } catch {}
+    }
+    return INITIAL_SITE_SETTINGS;
   });
   const [deliveryPincode, setDeliveryPincode] = useState<string>('122001');
   const [pincodeCity, setPincodeCity] = useState<string>('Gurugram, HR');

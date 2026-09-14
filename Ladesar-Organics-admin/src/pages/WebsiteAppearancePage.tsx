@@ -33,7 +33,7 @@ import {
 const PRESET_IMAGES = [
   {
     name: 'A2 Vedic Bilona Ghee',
-    url: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?auto=format&fit=crop&w=800&q=80',
+    url: '/images/products/Gir-Cow-Ghee-product.png',
     title: 'A2 Bilona Vedic Desi Gir Cow Ghee',
     badge: 'Vedic Masterpiece',
     price: 1099,
@@ -41,7 +41,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Wood-Pressed Mustard Oil',
-    url: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=800&q=80',
+    url: '/images/products/Mustard-Oil-product.png',
     title: 'Kachi Ghani Cold-Pressed Mustard Oil',
     badge: 'Wood Ghani Pressed',
     price: 349,
@@ -49,7 +49,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Lakadong Turmeric Powder',
-    url: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80',
+    url: '/images/products/Turmeric-Powder-product.png',
     title: 'Lakadong High-Curcumin Turmeric',
     badge: '8.5% Curcumin Tested',
     price: 220,
@@ -57,7 +57,7 @@ const PRESET_IMAGES = [
   },
   {
     name: 'Raw Wild Forest Honey',
-    url: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=800&q=80',
+    url: '/images/products/Forest-Honey-product.png',
     title: 'Raw Multi-Flora Forest Honey',
     badge: 'Unpasteurized & Pure',
     price: 499,
